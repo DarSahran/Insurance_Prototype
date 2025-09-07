@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Shield, Zap, Target, Eye, Star, Users, CheckCircle, BarChart3, Clock, TrendingUp, Play, Award, Lock, FileCheck } from 'lucide-react';
+import { ChevronRight, Shield, Zap, Target, Eye, Star, CheckCircle, BarChart3, TrendingUp, Play, Award, Lock, FileCheck, User } from 'lucide-react';
+import { demoScenarios } from '../data/demoData';
 
 interface LandingPageProps {
   onStartAssessment: () => void;
+  onLoadDemoScenario?: (scenario: any) => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemoScenario }) => {
   const [animatedStats, setAnimatedStats] = useState({ speed: 0, accuracy: 0, processing: 0 });
 
   useEffect(() => {
@@ -276,6 +278,66 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment }) => {
                 Try It Now - It's Free
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Demo Scenarios Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Try Demo Scenarios</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Experience our AI system with pre-filled realistic scenarios representing different life situations
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {demoScenarios.map((scenario) => (
+              <div key={scenario.id} className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                <div className="p-6">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <img 
+                      src={scenario.avatar} 
+                      alt={scenario.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">{scenario.name}</h3>
+                      <p className="text-gray-600">{scenario.description}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Risk Score:</span>
+                      <span className={`font-bold ${
+                        scenario.expectedOutcome.riskScore <= 30 ? 'text-green-600' :
+                        scenario.expectedOutcome.riskScore <= 70 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        {scenario.expectedOutcome.riskScore}/100
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Expected Premium:</span>
+                      <span className="font-bold text-blue-600">${scenario.expectedOutcome.monthlyPremium}/month</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Potential Savings:</span>
+                      <span className="font-bold text-green-600">{scenario.expectedOutcome.savings}%</span>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => onLoadDemoScenario && onLoadDemoScenario(scenario)}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold flex items-center justify-center space-x-2"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Try This Scenario</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

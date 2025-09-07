@@ -9,18 +9,19 @@ import AIAnalysisStep from './questionnaire/AIAnalysisStep';
 interface QuestionnaireWizardProps {
   onComplete: (data: any) => void;
   onBack: () => void;
+  initialData?: any;
 }
 
-const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, onBack }) => {
+const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, onBack, initialData = {} }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    demographics: {},
-    health: {},
-    lifestyle: {},
-    financial: {},
+    demographics: initialData.demographics || {},
+    health: initialData.health || {},
+    lifestyle: initialData.lifestyle || {},
+    financial: initialData.financial || {},
     processing: false
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<{ general?: string }>({});
 
   const steps = [
     { id: 1, title: 'Personal Information', icon: User, progress: 20 },
@@ -33,14 +34,14 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
   const updateFormData = (stepKey: string, data: any) => {
     setFormData(prev => ({
       ...prev,
-      [stepKey]: { ...prev[stepKey], ...data }
+      [stepKey]: { ...(prev as any)[stepKey], ...data }
     }));
   };
 
   const validateStep = (step: number) => {
     // Simple validation logic - in real app would be more comprehensive
     const stepKeys = ['demographics', 'health', 'lifestyle', 'financial'];
-    const currentData = formData[stepKeys[step - 1]];
+    const currentData = (formData as any)[stepKeys[step - 1]];
     
     if (!currentData || Object.keys(currentData).length === 0) {
       setErrors({ general: 'Please fill in the required fields' });
