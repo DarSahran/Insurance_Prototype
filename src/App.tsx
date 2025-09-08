@@ -7,7 +7,6 @@ import LandingPage from './components/LandingPage';
 import QuestionnaireWizard from './components/QuestionnaireWizard';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardHome from './pages/dashboard/DashboardHome';
-import ProfilePage from './pages/dashboard/ProfilePage';
 import PoliciesPage from './pages/dashboard/PoliciesPage';
 import PolicyDetailsPage from './pages/dashboard/PolicyDetailsPage';
 import AssessmentsPage from './pages/dashboard/AssessmentsPage';
@@ -215,7 +214,6 @@ function App() {
         <Route path="/questionnaire" element={<QuestionnaireWrapper />} />          {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
-            <Route path="profile" element={<ProfilePage />} />
             <Route path="policies" element={<PoliciesPage />} />
             <Route path="policies/:id" element={<PolicyDetailsPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />

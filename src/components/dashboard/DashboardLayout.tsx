@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { 
-  Home, User, Shield, FileText, Brain, TrendingUp, Heart, 
+  Home, Shield, FileText, Brain, TrendingUp, Heart, 
   DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle, 
   Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown
 } from 'lucide-react';
@@ -33,7 +33,6 @@ const DashboardLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Profile', href: '/dashboard/profile', icon: User },
     { name: 'Policies', href: '/dashboard/policies', icon: Shield },
     { name: 'Assessments', href: '/dashboard/assessments', icon: FileText },
     { name: 'AI Insights', href: '/dashboard/ai-insights', icon: Brain },
@@ -165,14 +164,6 @@ const DashboardLayout: React.FC = () => {
 
                 {profileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                    <Link
-                      to="/dashboard/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setProfileDropdownOpen(false)}
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
                     <Link
                       to="/dashboard/settings"
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
