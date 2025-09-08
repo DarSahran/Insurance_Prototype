@@ -6,9 +6,10 @@ import {
   Users, ArrowRight, X, Menu, AlertCircle, Globe,
   Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram,
   Sparkles, Brain, Database, Activity, PieChart,
-  ExternalLink
+  ExternalLink, LogOut
 } from 'lucide-react';
 import { demoScenarios } from '../data/demoData';
+import { useAuth } from '../hooks/useAuth';
 import youngProfessionalImg from '../assets/Young Professional.jpg';
 import middleProfessionalImg from '../assets/middle Professional.jpg';
 import seniorProfessionalImg from '../assets/senior Professional.jpg';
@@ -20,6 +21,7 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemoScenario }) => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [animatedStats, setAnimatedStats] = useState({ speed: 0, accuracy: 0, processing: 0, users: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
@@ -29,6 +31,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
   const [emailSubscription, setEmailSubscription] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [liveUsers, setLiveUsers] = useState(127);
+
+
+  const handleSignOut = async () => {
+    await signOut();
+    // Optionally show a success message
+  };
   
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -261,12 +269,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span>{liveUsers} users online</span>
                 </div>
-                <button
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  onClick={() => navigate('/login')}
-                >
-                  Login
-                </button>
+                {user ? (
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">{user.email}</span>
+                    </div>
+                    <button
+                      className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    onClick={() => navigate('/login')}
+                  >
+                    Login
+                  </button>
+                )}
               </div>
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
@@ -340,7 +363,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
 
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
                 Get Your Personalized 
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600"> Insurance Quote</span> 
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600"> Insurance Quote </span> 
                 in Under 5 Minutes
               </h1>
               
@@ -354,10 +377,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   onClick={onStartAssessment}
                   className="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg font-semibold relative overflow-hidden"
                 >
-                  <span>Start Your Assessment</span>
+                  <span>{user ? 'Continue Assessment' : 'Start Your Assessment'}</span>
                   <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 </button>
+                {!user && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">Want to save your progress?</p>
+                    <button
+                      onClick={() => navigate('/signup')}
+                      className="text-blue-600 hover:text-blue-700 font-medium underline"
+                    >
+                      Sign up for free
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Industry Stats Row */}
