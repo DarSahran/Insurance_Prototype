@@ -34,8 +34,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, 
       }
     } else {
       setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-      // Optionally, redirect or reload here
-      window.location.reload();
+      // Store user info in localStorage
+      if (data?.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      setTimeout(() => window.location.reload(), 1200);
     }
     setLoading(false)
   }
@@ -56,8 +59,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, 
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold text-slate-900">SuperAI Advisor</h1>
-            <p className="text-xs text-slate-600">Your AI Investment Guide</p>
+            <h1 className="text-lg font-bold text-slate-900">SmartCover AI</h1>
+            <p className="text-xs text-slate-600">Powered by Advanced AI</p>
           </div>
         </div>
       </div>

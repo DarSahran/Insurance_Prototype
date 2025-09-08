@@ -139,12 +139,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSwitchToLogin 
       {/* Top-left branding */}
       <div className="fixed top-4 left-4 z-10">
         <div className="flex items-center space-x-2 cursor-pointer" onClick={onBack}>
-          <div className="p-2 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold text-slate-900">SuperAI Advisor</h1>
-            <p className="text-xs text-slate-600">Your AI Investment Guide</p>
+            <h1 className="text-lg font-bold text-slate-900">SmartCover AI</h1>
+            <p className="text-xs text-slate-600">Powered by Advanced AI</p>
           </div>
         </div>
       </div>

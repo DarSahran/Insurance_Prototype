@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChevronRight, Shield, Zap, Target, Eye, Star, CheckCircle,
   TrendingUp, Award, Lock, FileCheck, User, Clock, DollarSign,
@@ -15,6 +16,7 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemoScenario }) => {
+  const navigate = useNavigate();
   const [animatedStats, setAnimatedStats] = useState({ speed: 0, accuracy: 0, processing: 0, users: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
@@ -246,17 +248,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
               </div>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Features</a>
-              <a href="#demo" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Demo</a>
-              <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Reviews</a>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>{liveUsers} users online</span>
+            {/* Responsive Navigation */}
+            <nav className="flex-1 flex items-center justify-end space-x-8">
+              <div className="hidden lg:flex items-center space-x-8">
+                <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Features</a>
+                <a href="#demo" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Demo</a>
+                <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Reviews</a>
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>{liveUsers} users online</span>
+                </div>
+                <button
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  onClick={() => navigate('/login')}
+                >
+                  Login
+                </button>
               </div>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                Login
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+                aria-label="Open menu"
+              >
+                <Menu className="w-6 h-6" />
               </button>
             </nav>
 
@@ -273,23 +287,30 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
-            <div className="bg-white w-80 h-full shadow-xl">
-              <div className="p-6">
+            <div className="bg-white w-80 h-full shadow-xl flex flex-col">
+              <div className="p-6 flex-1">
                 <div className="flex justify-between items-center mb-8">
                   <span className="text-xl font-bold">Navigation</span>
-                  <button onClick={() => setIsMobileMenuOpen(false)}>
+                  <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
                 <nav className="space-y-6">
-                  <a href="#features" className="block text-gray-800 font-medium py-2">Features</a>
-                  <a href="#demo" className="block text-gray-800 font-medium py-2">Demo</a>
-                  <a href="#testimonials" className="block text-gray-800 font-medium py-2">Reviews</a>
-                  <div className="pt-4 border-t">
-                    <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium">
-                      Start Assessment
-                    </button>
-                  </div>
+                  <a href="#features" className="block text-gray-800 font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>Features</a>
+                  <a href="#demo" className="block text-gray-800 font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>Demo</a>
+                  <a href="#testimonials" className="block text-gray-800 font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>Reviews</a>
+                  <button
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium mt-4"
+                    onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
+                  >
+                    Login
+                  </button>
+                  <button
+                    className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium mt-2"
+                    onClick={() => { setIsMobileMenuOpen(false); onStartAssessment(); }}
+                  >
+                    Start Assessment
+                  </button>
                 </nav>
               </div>
             </div>

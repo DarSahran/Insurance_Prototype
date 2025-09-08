@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { LoginPage } from './components/Auth/LoginPage';
+import { SignupPage } from './components/Auth/SignupPage';
 import LandingPage from './components/LandingPage';
 import QuestionnaireWizard from './components/QuestionnaireWizard';
 import ResultsDashboard from './components/ResultsDashboard';
@@ -40,9 +43,22 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {renderCurrentStep()}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={
+          <div className="min-h-screen bg-gray-50">
+            {renderCurrentStep()}
+          </div>
+        } />
+        <Route path="/login" element={
+          <LoginPage
+            onBack={() => window.history.back()}
+            onSwitchToSignup={() => {}}
+            onForgotPassword={() => {}}
+          />
+        } />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
