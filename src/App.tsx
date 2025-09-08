@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { useEffect } from 'react';
 import { LoginPage } from './components/Auth/LoginPage';
 import SignupPage from './components/Auth/SignupPage';
 import LandingPage from './components/LandingPage';
@@ -45,6 +46,31 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 // Create wrapper components for auth pages
 const LoginWrapper = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // If user is already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, don't render login page (redirect will happen)
+  if (user) {
+    return null;
+  }
 
   const handleBack = () => {
     navigate('/');
@@ -73,6 +99,38 @@ const LoginWrapper = () => {
   );
 };
 
+// Create wrapper for signup page
+const SignupWrapper = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // If user is already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, don't render signup page (redirect will happen)
+  if (user) {
+    return null;
+  }
+
+  return <SignupPage />;
+};
+
 // Create wrapper for questionnaire
 const QuestionnaireWrapper = () => {
   const navigate = useNavigate();
@@ -99,6 +157,31 @@ const QuestionnaireWrapper = () => {
 // Create wrapper for landing page
 const LandingPageWrapper = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // If user is authenticated, redirect to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, don't render landing page (redirect will happen)
+  if (user) {
+    return null;
+  }
 
   const handleStartAssessment = () => {
     navigate('/questionnaire');
@@ -127,11 +210,9 @@ function App() {
               <LandingPageWrapper />
             </div>
           } />
-          <Route path="/login" element={<LoginWrapper />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/questionnaire" element={<QuestionnaireWrapper />} />
-          
-          {/* Dashboard Routes */}
+        <Route path="/login" element={<LoginWrapper />} />
+        <Route path="/signup" element={<SignupWrapper />} />
+        <Route path="/questionnaire" element={<QuestionnaireWrapper />} />          {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="profile" element={<ProfilePage />} />

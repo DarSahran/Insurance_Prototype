@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { 
   Home, User, Shield, FileText, Brain, TrendingUp, Heart, 
   DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle, 
@@ -11,6 +11,7 @@ const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
 
   // Show loading state while checking authentication
@@ -50,6 +51,7 @@ const DashboardLayout: React.FC = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    navigate('/', { replace: true });
   };
 
   return (
