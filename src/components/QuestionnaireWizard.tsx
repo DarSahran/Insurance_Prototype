@@ -12,9 +12,10 @@ interface QuestionnaireWizardProps {
   onComplete: (data: any) => void;
   onBack: () => void;
   initialData?: any;
+  isDashboardMode?: boolean;
 }
 
-const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, onBack, initialData = {} }) => {
+const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, onBack, initialData = {}, isDashboardMode = false }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     demographics: initialData.demographics || {},
@@ -321,7 +322,7 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
   const currentStepData = steps.find(step => step.id === currentStep);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={isDashboardMode ? "h-full bg-gray-50" : "min-h-screen bg-gray-50"}>
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -331,7 +332,7 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
             >
               <ChevronLeft className="w-5 h-5" />
-              <span>Back to Home</span>
+              <span>{isDashboardMode ? 'Back to Assessments' : 'Back to Home'}</span>
             </button>
             
             <div className="flex items-center space-x-2">
