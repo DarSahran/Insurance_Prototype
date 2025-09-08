@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { LoginPage } from './components/Auth/LoginPage';
 import SignupPage from './components/Auth/SignupPage';
 import LandingPage from './components/LandingPage';
@@ -8,12 +8,14 @@ import ResultsDashboard from './components/ResultsDashboard';
 
 // Create wrapper components for auth pages
 const LoginWrapper = () => {
+  const navigate = useNavigate();
+
   const handleBack = () => {
-    window.location.href = '/';
+    navigate('/');
   };
 
   const handleSwitchToSignup = () => {
-    window.location.href = '/signup';
+    navigate('/signup');
   };
 
   const handleForgotPassword = () => {
