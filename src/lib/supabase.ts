@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -12,92 +16,71 @@ export type Database = {
         Row: {
           id: string
           user_id: string
-          name: string
-          age: number
-          retirement_age: number
-          annual_income: number
-          total_savings: number
-          current_super: number
-          monthly_contribution: number
-          employer_contribution: number
-          risk_tolerance: 'conservative' | 'balanced' | 'growth' | 'aggressive'
-          investment_experience: 'beginner' | 'intermediate' | 'advanced'
-          financial_goals: string[]
-          preferred_sectors: string[]
-          esg_preferences: boolean
-          tax_considerations: string[]
-          employment_status: string
-          relationship_status: string
-          dependents: number
+          email: string
+          first_name: string | null
+          last_name: string | null
+          full_name: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          name: string
-          age: number
-          retirement_age: number
-          annual_income: number
-          total_savings: number
-          current_super: number
-          monthly_contribution: number
-          employer_contribution: number
-          risk_tolerance: 'conservative' | 'balanced' | 'growth' | 'aggressive'
-          investment_experience: 'beginner' | 'intermediate' | 'advanced'
-          financial_goals: string[]
-          preferred_sectors: string[]
-          esg_preferences: boolean
-          tax_considerations: string[]
-          employment_status: string
-          relationship_status: string
-          dependents: number
+          email: string
+          first_name?: string | null
+          last_name?: string | null
+          full_name?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          name?: string
-          age?: number
-          retirement_age?: number
-          annual_income?: number
-          total_savings?: number
-          current_super?: number
-          monthly_contribution?: number
-          employer_contribution?: number
-          risk_tolerance?: 'conservative' | 'balanced' | 'growth' | 'aggressive'
-          investment_experience?: 'beginner' | 'intermediate' | 'advanced'
-          financial_goals?: string[]
-          preferred_sectors?: string[]
-          esg_preferences?: boolean
-          tax_considerations?: string[]
-          employment_status?: string
-          relationship_status?: string
-          dependents?: number
+          email?: string
+          first_name?: string | null
+          last_name?: string | null
+          full_name?: string | null
           created_at?: string
           updated_at?: string
         }
       }
-      chat_sessions: {
+      insurance_questionnaires: {
         Row: {
           id: string
           user_id: string
-          messages: any[]
+          demographics: any
+          health: any
+          lifestyle: any
+          financial: any
+          ai_analysis: any
+          risk_score: number | null
+          premium_estimate: number | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          messages: any[]
+          demographics: any
+          health: any
+          lifestyle: any
+          financial: any
+          ai_analysis?: any
+          risk_score?: number | null
+          premium_estimate?: number | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          messages?: any[]
+          demographics?: any
+          health?: any
+          lifestyle?: any
+          financial?: any
+          ai_analysis?: any
+          risk_score?: number | null
+          premium_estimate?: number | null
           created_at?: string
           updated_at?: string
         }

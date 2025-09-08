@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { createUserProfile } from '../lib/database'
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
@@ -35,6 +36,24 @@ export const useAuth = () => {
         data: userData
       }
     })
+
+    // If signup is successful, create user profile
+    if (data.user && !error) {
+      const profileData = {
+        user_id: data.user.id,
+        email: email,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        full_name: userData.full_name,
+      }
+      
+      const { error: profileError } = await createUserProfile(profileData)
+      
+      if (profileError) {
+        console.error('Error creating user profile:', profileError)
+      }
+    }
+
     return { data, error }
   }
 

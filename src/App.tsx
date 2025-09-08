@@ -1,10 +1,34 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LoginPage } from './components/Auth/LoginPage';
-import { SignupPage } from './components/Auth/SignupPage';
+import SignupPage from './components/Auth/SignupPage';
 import LandingPage from './components/LandingPage';
 import QuestionnaireWizard from './components/QuestionnaireWizard';
 import ResultsDashboard from './components/ResultsDashboard';
+
+// Create wrapper components for auth pages
+const LoginWrapper = () => {
+  const handleBack = () => {
+    window.location.href = '/';
+  };
+
+  const handleSwitchToSignup = () => {
+    window.location.href = '/signup';
+  };
+
+  const handleForgotPassword = () => {
+    // TODO: Implement forgot password functionality
+    console.log('Forgot password clicked');
+  };
+
+  return (
+    <LoginPage
+      onBack={handleBack}
+      onSwitchToSignup={handleSwitchToSignup}
+      onForgotPassword={handleForgotPassword}
+    />
+  );
+};
 
 function App() {
   const [currentStep, setCurrentStep] = useState('landing');
@@ -50,12 +74,10 @@ function App() {
             {renderCurrentStep()}
           </div>
         } />
-        <Route path="/login" element={
-          <LoginPage
-            onBack={() => window.history.back()}
-            onSwitchToSignup={() => {}}
-            onForgotPassword={() => {}}
-          />
+        <Route path="/login" element={<LoginWrapper />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/questionnaire" element={
+          <QuestionnaireWizard onComplete={handleQuestionnaireComplete} onBack={handleBackToHome} initialData={userData} />
         } />
       </Routes>
     </BrowserRouter>
