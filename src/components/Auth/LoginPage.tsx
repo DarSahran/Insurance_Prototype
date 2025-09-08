@@ -7,9 +7,10 @@ interface LoginPageProps {
   onBack: () => void
   onSwitchToSignup: () => void
   onForgotPassword: () => void
+  onLoginSuccess: () => void
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, onForgotPassword }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, onForgotPassword, onLoginSuccess }) => {
   const { signIn } = useAuth()
   const { signIn: clerkSignIn, isLoaded } = useSignIn()
   const [formData, setFormData] = useState({
@@ -56,7 +57,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, 
       if (data?.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
-      setTimeout(() => window.location.reload(), 1200);
+      // Add a longer delay to ensure auth state is properly updated
+      setTimeout(() => onLoginSuccess(), 2000);
     }
     setLoading(false)
   }

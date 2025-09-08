@@ -8,7 +8,6 @@ const SignupPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -66,7 +65,7 @@ const SignupPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await signUp(email, password, { displayName: name });
+      await signUp(email, password, {});
       navigate('/questionnaire');
     } catch (error: any) {
       setError(error.message || 'Failed to create account');
@@ -128,21 +127,6 @@ const SignupPage: React.FC = () => {
 
           {/* Email Signup Form - Priority Section */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 sm:py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"
-                placeholder="Enter your full name"
-                required
-              />
-            </div>
-
             <div>
               <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
                 Email Address
