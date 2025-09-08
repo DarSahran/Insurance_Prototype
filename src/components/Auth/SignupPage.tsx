@@ -181,37 +181,37 @@ const SignupPage: React.FC = () => {
                 </button>
               </div>
 
-            {password && (
-              <div className="mt-2">
-                <div className="flex space-x-1 mb-2">
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <div
-                      key={level}
-                      className={`h-1 flex-1 rounded ${
-                        passwordValidation.score >= level
-                          ? passwordValidation.score <= 2
-                            ? 'bg-red-500'
-                            : passwordValidation.score <= 3
-                            ? 'bg-yellow-500'
-                            : 'bg-green-500'
-                          : 'bg-gray-200'
-                      }`}
-                    />
-                  ))}
-                </div>
-                {passwordValidation.feedback.length > 0 && (
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    {passwordValidation.feedback.map((item, index) => (
-                      <li key={index} className="flex items-center">
-                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
-                        {item}
-                      </li>
+              {password && (
+                <div className="mt-2">
+                  <div className="flex space-x-1 mb-2">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded ${
+                          passwordValidation.score >= level
+                            ? passwordValidation.score <= 2
+                              ? 'bg-red-500'
+                              : passwordValidation.score <= 3
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
+                            : 'bg-gray-200'
+                        }`}
+                      />
                     ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </div>
+                  </div>
+                  {passwordValidation.feedback.length > 0 && (
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      {passwordValidation.feedback.map((item, index) => (
+                        <li key={index} className="flex items-center">
+                          <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
