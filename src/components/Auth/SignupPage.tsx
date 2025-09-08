@@ -272,37 +272,37 @@ const SignupPage: React.FC = () => {
             </button>
           </div>
 
-        {/* Sign In Link */}
-        <div className="mt-6 text-center">
-          <p className="text-xs sm:text-sm text-slate-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-              Sign in
-            </Link>
-          </p>
+          {/* Sign In Link */}
+          <div className="mt-6 text-center">
+            <p className="text-xs sm:text-sm text-slate-600">
+              Already have an account?{' '}
+              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Trust Indicators */}
-      <div className="mt-8 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-500">
-          <div className="flex items-center">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            Bank-level security
-          </div>
-          <div className="flex items-center">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            GDPR Compliant
-          </div>
-          <div className="flex items-center">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            25,000+ users
+        {/* Trust Indicators */}
+        <div className="mt-8 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-500">
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Bank-level security
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              GDPR Compliant
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              25,000+ users
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default SignupPage;
