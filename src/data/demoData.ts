@@ -1,10 +1,14 @@
 // Demo scenarios data for the AI-driven insurance platform
+import youngProfessionalImg from '../assets/Young Professional.jpg';
+import middleProfessionalImg from '../assets/middle Professional.jpg';
+import seniorProfessionalImg from '../assets/senior Professional.jpg';
+
 export const demoScenarios = [
   {
     id: 'young-professional',
     name: 'Young Professional',
     description: 'Tech worker, age 28, excellent health, active lifestyle',
-    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+    avatar: youngProfessionalImg,
     demographics: {
       fullName: 'Alex Johnson',
       dateOfBirth: '1995-06-15',
@@ -65,7 +69,7 @@ export const demoScenarios = [
     id: 'middle-aged-conditions',
     name: 'Middle-Aged with Conditions',
     description: 'Manager, age 45, pre-diabetic and hypertension, sedentary lifestyle',
-    avatar: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+    avatar: middleProfessionalImg,
     demographics: {
       fullName: 'Michael Chen',
       dateOfBirth: '1978-09-22',
@@ -128,7 +132,7 @@ export const demoScenarios = [
     id: 'senior-citizen',
     name: 'Senior Citizen',
     description: 'Retired, age 65, multiple conditions, limited activity',
-    avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+    avatar: seniorProfessionalImg,
     demographics: {
       fullName: 'Dr. Emily Davis',
       dateOfBirth: '1958-03-10',

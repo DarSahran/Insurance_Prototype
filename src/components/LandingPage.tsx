@@ -9,6 +9,9 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { demoScenarios } from '../data/demoData';
+import youngProfessionalImg from '../assets/Young Professional.jpg';
+import middleProfessionalImg from '../assets/middle Professional.jpg';
+import seniorProfessionalImg from '../assets/senior Professional.jpg';
 
 interface LandingPageProps {
   onStartAssessment: () => void;
@@ -147,7 +150,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
       company: "Johnson & Associates",
       content: "Got my policy quote in under 4 minutes. The AI explanation helped me understand exactly why I qualified for lower rates. Saved $2,400 annually!",
       rating: 5,
-      avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop",
+      avatar: youngProfessionalImg,
       savings: "$2,400",
       timeframe: "Annual",
       location: "New York, NY"
@@ -158,7 +161,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
       company: "Tech Professional",
       content: "The transparency is incredible. I could see exactly how my health improvements affected my premium in real-time. My family's coverage is now perfectly optimized.",
       rating: 5,
-      avatar: "https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop",
+      avatar: middleProfessionalImg,
       savings: "$1,800",
       timeframe: "Annual",
       location: "San Francisco, CA"
@@ -169,7 +172,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
       company: "Memorial Hospital",
       content: "As a doctor, I appreciate how the AI considers comprehensive health data for fair pricing. The medical data integration is revolutionary and respectful.",
       rating: 5,
-      avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop",
+      avatar: seniorProfessionalImg,
       savings: "$3,200",
       timeframe: "Annual",
       location: "Boston, MA"
@@ -180,7 +183,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
       company: "Former Finance Executive",
       content: "At 65, I thought insurance would be expensive. The AI found factors others missed and got me comprehensive coverage at an amazing rate.",
       rating: 5,
-      avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop",
+      avatar: seniorProfessionalImg,
       savings: "$4,100",
       timeframe: "Annual",
       location: "Miami, FL"
@@ -595,7 +598,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
             isVisible.demo ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
           }`}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-8">
-              <div className="space-y-4">
+              <div className="space-y-4 flex flex-col">
                 <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto relative">
                   <FileCheck className="w-10 h-10 text-blue-600" />
                   <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -603,15 +606,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   </div>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Smart Data Collection</h3>
-                <p className="text-gray-600">Intelligent forms with 200+ optimized data points</p>
-                <div className="bg-blue-50 rounded-lg p-4">
+                <p className="text-gray-600 flex-grow">Intelligent forms with 200+ optimized data points</p>
+                <div className="bg-blue-50 rounded-lg p-4 mt-auto">
                   <div className="text-3xl font-bold text-blue-600">5 min</div>
                   <div className="text-sm text-gray-500">Average completion</div>
                   <div className="text-xs text-green-600 mt-1">⚡ 60% faster than competitors</div>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 flex flex-col">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto relative">
                   <Brain className="w-10 h-10 text-green-600" />
                   <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -619,15 +622,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   </div>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">AI Processing</h3>
-                <p className="text-gray-600">Advanced ML models with bias detection</p>
-                <div className="bg-green-50 rounded-lg p-4">
+                <p className="text-gray-600 flex-grow">Advanced ML models with bias detection</p>
+                <div className="bg-green-50 rounded-lg p-4 mt-auto">
                   <div className="text-3xl font-bold text-green-600">2.3s</div>
                   <div className="text-sm text-gray-500">Processing time</div>
                   <div className="text-xs text-green-600 mt-1">🚀 100x faster than traditional</div>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 flex flex-col">
                 <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto relative">
                   <Target className="w-10 h-10 text-purple-600" />
                   <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -635,8 +638,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   </div>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Personalized Results</h3>
-                <p className="text-gray-600">Transparent pricing with detailed explanations</p>
-                <div className="bg-purple-50 rounded-lg p-4">
+                <p className="text-gray-600 flex-grow">Transparent pricing with detailed explanations</p>
+                <div className="bg-purple-50 rounded-lg p-4 mt-auto">
                   <div className="text-3xl font-bold text-purple-600">78%</div>
                   <div className="text-sm text-gray-500">Accuracy rate</div>
                   <div className="text-xs text-green-600 mt-1">🎯 11x more accurate</div>
@@ -705,7 +708,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {demoScenarios.map((scenario) => (
-              <div key={scenario.id} className="group bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden">
+              <div key={scenario.id} className="group bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-col h-full">
                 <div className="relative">
                   <img 
                     src={scenario.avatar} 
@@ -718,7 +721,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   </div>
                 </div>
                 
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-grow">
                   <div className="mb-4">
                     <h3 className="text-xl font-bold text-gray-900">{scenario.name}</h3>
                     <p className="text-gray-600">{scenario.description}</p>
@@ -726,7 +729,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
                       <div className="text-sm text-gray-600">Risk Score</div>
                       <div className={`text-xl font-bold ${
                         scenario.expectedOutcome.riskScore <= 30 ? 'text-green-600' :
@@ -735,13 +738,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                         {scenario.expectedOutcome.riskScore}/100
                       </div>
                     </div>
-                    <div className="bg-blue-50 rounded-lg p-3">
+                    <div className="bg-blue-50 rounded-lg p-3 text-center">
                       <div className="text-sm text-gray-600">Premium</div>
                       <div className="text-xl font-bold text-blue-600">${scenario.expectedOutcome.monthlyPremium}/mo</div>
                     </div>
                   </div>
 
-                  <div className="mb-6">
+                  <div className="mb-6 flex-grow">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-600">Potential Savings</span>
                       <span className="font-bold text-green-600">{scenario.expectedOutcome.savings}% annually</span>
@@ -756,7 +759,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   
                   <button 
                     onClick={() => onLoadDemoScenario && onLoadDemoScenario(scenario)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold flex items-center justify-center space-x-2 group-hover:shadow-lg"
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold flex items-center justify-center space-x-2 group-hover:shadow-lg mt-auto"
                   >
                     <User className="w-4 h-4" />
                     <span>Try This Scenario</span>
