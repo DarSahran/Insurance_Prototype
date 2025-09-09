@@ -158,10 +158,17 @@ const LandingPageWrapper = () => {
   const navigate = useNavigate();
   const { user, loading } = useHybridAuth();
 
-  // If user is authenticated, redirect to dashboard
+  // Only redirect authenticated users to dashboard if they're not in the process of logging out
   useEffect(() => {
     if (!loading && user) {
-      navigate('/dashboard', { replace: true });
+      // Check if we're coming from a logout action (no redirect if so)
+      const isLoggingOut = sessionStorage.getItem('logging_out');
+      if (!isLoggingOut) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        // Clear the logout flag
+        sessionStorage.removeItem('logging_out');
+      }
     }
   }, [user, loading, navigate]);
 
@@ -177,8 +184,8 @@ const LandingPageWrapper = () => {
     );
   }
 
-  // If user is authenticated, don't render landing page (redirect will happen)
-  if (user) {
+  // If user is authenticated and not logging out, don't render landing page (redirect will happen)
+  if (user && !sessionStorage.getItem('logging_out')) {
     return null;
   }
 

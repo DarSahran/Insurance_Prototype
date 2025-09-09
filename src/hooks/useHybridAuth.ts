@@ -48,17 +48,41 @@ export const useHybridAuth = () => {
 
   const signOut = async () => {
     try {
-      if (authProvider === 'clerk') {
-        await clerkSignOut()
-      } else if (authProvider === 'supabase') {
-        await supabaseSignOut()
+      // Clear all browser storage first
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear IndexedDB if it exists
+      if (window.indexedDB) {
+        try {
+          const databases = await window.indexedDB.databases();
+          databases.forEach(db => {
+            if (db.name) window.indexedDB.deleteDatabase(db.name);
+          });
+        } catch (e) {
+          // Ignore IndexedDB errors
+        }
       }
-      setCurrentUser(null)
-      setAuthProvider(null)
+      
+      // Sign out from the appropriate provider
+      if (authProvider === 'clerk') {
+        await clerkSignOut();
+      } else if (authProvider === 'supabase') {
+        await supabaseSignOut();
+      }
+      
+      // Clear local state
+      setCurrentUser(null);
+      setAuthProvider(null);
+      
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Sign out error:', error);
+      // Clear local state even if sign out fails
+      setCurrentUser(null);
+      setAuthProvider(null);
+      throw error;
     }
-  }
+  };
 
   const isAuthenticated = !!currentUser
   const isClerkUser = authProvider === 'clerk'

@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ChevronRight, Shield, Zap, Target, Eye, Star, CheckCircle,
   TrendingUp, Award, Lock, FileCheck, User, Clock, DollarSign,
-  Users, ArrowRight, X, Menu, AlertCircle, Globe,
+  Users, ArrowRight, X, Menu, Globe,
   Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram,
   Sparkles, Brain, Database, Activity, PieChart,
   ExternalLink, LogOut
 } from 'lucide-react';
 import { demoScenarios } from '../data/demoData';
-import { useAuth } from '../hooks/useAuth';
+import { useHybridAuth } from '../hooks/useHybridAuth';
 import youngProfessionalImg from '../assets/Young Professional.jpg';
 import middleProfessionalImg from '../assets/middle Professional.jpg';
 import seniorProfessionalImg from '../assets/senior Professional.jpg';
@@ -21,21 +21,59 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemoScenario }) => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useHybridAuth();
   const [animatedStats, setAnimatedStats] = useState({ speed: 0, accuracy: 0, processing: 0, users: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [isVisible, setIsVisible] = useState({ hero: false, features: false, demo: false });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [showCookieConsent, setShowCookieConsent] = useState(true);
   const [emailSubscription, setEmailSubscription] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [liveUsers, setLiveUsers] = useState(127);
 
 
   const handleSignOut = async () => {
-    await signOut();
-    // Optionally show a success message
+    try {
+      // Set logout flag before clearing storage
+      sessionStorage.setItem('logging_out', 'true');
+      
+      // Sign out from auth provider first
+      await signOut();
+      
+      // Clear all browser storage after sign out
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear IndexedDB if it exists
+      if (window.indexedDB) {
+        try {
+          const databases = await window.indexedDB.databases();
+          databases.forEach(db => {
+            if (db.name) window.indexedDB.deleteDatabase(db.name);
+          });
+        } catch (e) {
+          // Ignore IndexedDB errors
+        }
+      }
+      
+      // Force page reload to clear all state
+      window.location.reload();
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force page reload even if logout fails
+      window.location.reload();
+    }
+  };
+
+  // Handle assessment start with authentication check
+  const handleStartAssessment = () => {
+    if (user) {
+      // User is logged in, proceed to assessment
+      onStartAssessment();
+    } else {
+      // User is not logged in, redirect to signup
+      navigate('/signup');
+    }
   };
   
   const heroRef = useRef<HTMLDivElement>(null);
@@ -299,14 +337,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                 <Menu className="w-6 h-6" />
               </button>
             </nav>
-
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
           </div>
         </div>
 
@@ -333,7 +363,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   </button>
                   <button
                     className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium mt-2"
-                    onClick={() => { setIsMobileMenuOpen(false); onStartAssessment(); }}
+                    onClick={() => { setIsMobileMenuOpen(false); handleStartAssessment(); }}
                   >
                     Start Assessment
                   </button>
@@ -374,24 +404,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
               {/* Enhanced CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button 
-                  onClick={onStartAssessment}
+                  onClick={handleStartAssessment}
                   className="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg font-semibold relative overflow-hidden"
                 >
                   <span>{user ? 'Continue Assessment' : 'Start Your Assessment'}</span>
                   <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 </button>
-                {!user && (
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-2">Want to save your progress?</p>
-                    <button
-                      onClick={() => navigate('/signup')}
-                      className="text-blue-600 hover:text-blue-700 font-medium underline"
-                    >
-                      Sign up for free
-                    </button>
-                  </div>
-                )}
               </div>
 
               {/* Industry Stats Row */}
@@ -717,7 +736,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
 
             <div className="text-center">
               <button 
-                onClick={onStartAssessment}
+                onClick={handleStartAssessment}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Try It Now - Free Assessment
@@ -964,10 +983,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
           
           <div className="space-y-4">
             <button 
-              onClick={onStartAssessment}
+              onClick={handleStartAssessment}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-12 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg text-xl font-semibold relative overflow-hidden group"
             >
-              <span>Get Your Personalized Quote Now</span>
+              <span>{user ? 'Continue Your Assessment' : 'Get Your Personalized Quote Now'}</span>
               <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </button>
             
@@ -1053,40 +1072,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
           </div>
         </div>
       </footer>
-
-      {/* Cookie Consent */}
-      {showCookieConsent && (
-        <div className="fixed bottom-6 left-6 right-6 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 max-w-md">
-          <div className="flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-700">
-                We use cookies to enhance your experience and analyze our platform performance.
-              </p>
-              <div className="flex space-x-2 mt-3">
-                <button 
-                  onClick={() => setShowCookieConsent(false)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                >
-                  Accept
-                </button>
-                <button 
-                  onClick={() => setShowCookieConsent(false)}
-                  className="text-gray-600 px-3 py-1 rounded text-sm hover:text-gray-800"
-                >
-                  Decline
-                </button>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowCookieConsent(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Save, AlertCircle, CheckCircle, User, Heart, Activity, DollarSign, Cpu } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle, User, Heart, Activity, DollarSign, Cpu } from 'lucide-react';
 import DemographicsStep from './questionnaire/DemographicsStep';
 import HealthStep from './questionnaire/HealthStep';
 import LifestyleStep from './questionnaire/LifestyleStep';
@@ -322,120 +322,150 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
   const currentStepData = steps.find(step => step.id === currentStep);
 
   return (
-    <div className={isDashboardMode ? "h-full bg-gray-50" : "min-h-screen bg-gray-50"}>
+    <div className={isDashboardMode ? "h-full bg-gradient-to-br from-blue-50 to-indigo-50" : "min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50"}>
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-blue-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
+          <div className="flex items-center justify-between py-6">
             <button 
               onClick={onBack}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+              className="group flex items-center space-x-3 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-105"
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span>{isDashboardMode ? 'Back to Assessments' : 'Back to Home'}</span>
+              <div className="p-1 rounded-full bg-gray-100 group-hover:bg-blue-100 transition-colors duration-200">
+                <ChevronLeft className="w-4 h-4" />
+              </div>
+              <span className="font-medium">{isDashboardMode ? 'Back to Assessments' : 'Back to Home'}</span>
             </button>
             
-            <div className="flex items-center space-x-2">
-              <Save className={`w-5 h-5 ${isSaving ? 'text-blue-500 animate-spin' : 'text-gray-400'}`} />
-              <span className="text-sm text-gray-500">
-                {user ? (isSaving ? 'Saving...' : 'Auto-saved') : 'Not logged in - data not saved'}
-              </span>
+            {/* Add a title for better context */}
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-semibold text-gray-800 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Insurance Assessment
+              </h1>
+            </div>
+            
+            {/* Step indicator */}
+            <div className="flex items-center space-x-2 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-full border border-blue-200">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-gray-600">Step {currentStep + 1} of {steps.length}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+      <div className="bg-white/90 backdrop-blur-sm border-b border-blue-100 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 {currentStepData?.title}
               </h1>
-              <p className="text-gray-600">
-                Step {currentStep} of 5 - {currentStepData?.progress}% Complete
+              <p className="text-gray-600 font-medium">
+                Step {currentStep + 1} of {steps.length} • {currentStepData?.progress}% Complete
               </p>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               {currentStepData?.icon && (
-                <currentStepData.icon className="w-8 h-8 text-blue-600" />
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg">
+                  <currentStepData.icon className="w-6 h-6" />
+                </div>
               )}
             </div>
           </div>
 
-          {/* Step indicators */}
-          <div className="flex items-center justify-between mb-6">
+          {/* Enhanced Step indicators */}
+          <div className="flex items-center justify-between mb-8">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  currentStep === step.id 
-                    ? 'bg-blue-600 text-white' 
-                    : currentStep > step.id 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {currentStep > step.id ? (
-                    <CheckCircle className="w-4 h-4" />
-                  ) : (
-                    step.id
-                  )}
+                <div className="flex flex-col items-center space-y-2">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 shadow-lg ${
+                    currentStep === step.id 
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white animate-pulse' 
+                      : currentStep > step.id 
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
+                      : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {currentStep > step.id ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      step.id + 1
+                    )}
+                  </div>
+                  <span className={`text-xs font-medium transition-colors duration-300 hidden sm:block ${
+                    currentStep >= step.id ? 'text-gray-700' : 'text-gray-400'
+                  }`}>
+                    {step.title.split(' ')[0]}
+                  </span>
                 </div>
                 
                 {index < steps.length - 1 && (
-                  <div className={`w-12 sm:w-24 h-1 mx-2 ${
-                    currentStep > step.id ? 'bg-green-600' : 'bg-gray-200'
+                  <div className={`w-12 sm:w-24 h-2 mx-4 rounded-full transition-all duration-500 ${
+                    currentStep > step.id ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gray-200'
                   }`} />
                 )}
               </div>
             ))}
           </div>
 
-          {/* Overall progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${currentStepData?.progress}%` }}
-            />
+          {/* Enhanced overall progress bar */}
+          <div className="relative">
+            <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+              <div 
+                className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-700 ease-out shadow-sm relative overflow-hidden"
+                style={{ width: `${currentStepData?.progress}%` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
+              </div>
+            </div>
+            <div className="flex justify-between mt-2">
+              <span className="text-xs text-gray-500 font-medium">0%</span>
+              <span className="text-xs text-gray-700 font-semibold">{currentStepData?.progress}%</span>
+              <span className="text-xs text-gray-500 font-medium">100%</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Step Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+      {/* Enhanced Step Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-10 relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full -translate-y-8 translate-x-8"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full translate-y-8 -translate-x-8"></div>
+          
           {errors.general && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <span className="text-red-700">{errors.general}</span>
+            <div className="mb-8 p-5 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-3 shadow-sm">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <span className="text-red-700 font-medium">{errors.general}</span>
             </div>
           )}
 
           {renderStep()}
 
-          {/* Navigation */}
+          {/* Enhanced Navigation */}
           {currentStep < 5 && (
-            <div className="flex items-center justify-between mt-8 pt-6 border-t">
+            <div className="flex items-center justify-between mt-12 pt-8 border-t border-gray-200">
               <button
                 onClick={handlePrevious}
                 disabled={currentStep === 1}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
+                className={`group flex items-center space-x-3 px-8 py-4 rounded-xl font-semibold transition-all duration-200 transform ${
                   currentStep === 1
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:scale-105 shadow-lg border border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
                 <span>Previous</span>
               </button>
 
               <button
                 onClick={handleNext}
-                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
+                className="group flex items-center space-x-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-10 py-4 rounded-xl font-semibold hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
               >
                 <span>{currentStep === 4 ? 'Generate Quote' : 'Next'}</span>
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
           )}

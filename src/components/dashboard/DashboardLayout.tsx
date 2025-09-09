@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { 
   Home, Shield, FileText, Brain, TrendingUp, Heart, 
   DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle, 
   Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useHybridAuth } from '../../hooks/useHybridAuth';
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useHybridAuth();
 
   // Show loading state while checking authentication
   if (loading) {
@@ -49,8 +48,36 @@ const DashboardLayout: React.FC = () => {
   ];
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/', { replace: true });
+    try {
+      // Set logout flag before clearing storage
+      sessionStorage.setItem('logging_out', 'true');
+      
+      // Sign out from auth provider first
+      await signOut();
+      
+      // Clear all browser storage after sign out
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear IndexedDB if it exists
+      if (window.indexedDB) {
+        try {
+          const databases = await window.indexedDB.databases();
+          databases.forEach(db => {
+            if (db.name) window.indexedDB.deleteDatabase(db.name);
+          });
+        } catch (e) {
+          // Ignore IndexedDB errors
+        }
+      }
+      
+      // Force navigation to landing page
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force navigation even if logout fails
+      window.location.href = '/';
+    }
   };
 
   return (
