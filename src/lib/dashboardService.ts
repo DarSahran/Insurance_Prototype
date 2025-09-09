@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { getUserQuestionnaires } from './database';
+import { getUserQuestionnaires, getUserProfile } from './database';
 
 export interface DashboardStats {
   totalPolicies: number;
@@ -15,6 +15,18 @@ export interface DashboardStats {
   recentActivity: ActivityItem[];
   upcomingPayments: PaymentItem[];
   insights: InsightItem[];
+  userProfile?: {
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    full_name?: string;
+    phone?: string;
+    date_of_birth?: string;
+    gender?: string;
+    occupation?: string;
+    location?: string;
+  };
 }
 
 export interface ActivityItem {
@@ -50,6 +62,11 @@ class DashboardService {
   
   static async getUserDashboardData(userId: string): Promise<DashboardStats> {
     try {
+      // Get user profile first
+      const { data: userProfile, error: profileError } = await getUserProfile(userId);
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error fetching user profile:', profileError);
+      }
       // Get user policies
       const { data: policies, error: policiesError } = await supabase
         .from('policies')
@@ -248,7 +265,19 @@ class DashboardService {
         healthScore,
         recentActivity: recentActivity.slice(0, 5),
         upcomingPayments,
-        insights
+        insights,
+        userProfile: userProfile ? {
+          id: userProfile.id,
+          email: userProfile.email,
+          first_name: userProfile.first_name,
+          last_name: userProfile.last_name,
+          full_name: userProfile.full_name,
+          phone: userProfile.phone,
+          date_of_birth: userProfile.date_of_birth,
+          gender: userProfile.gender,
+          occupation: userProfile.occupation,
+          location: userProfile.location,
+        } : undefined
       };
 
     } catch (error) {
@@ -286,7 +315,8 @@ class DashboardService {
             priority: 'medium',
             action: 'Complete Assessment'
           }
-        ]
+        ],
+        userProfile: undefined
       };
     }
   }

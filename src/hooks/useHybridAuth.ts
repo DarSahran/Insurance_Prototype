@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useUser, useAuth as useClerkAuth } from '@clerk/clerk-react'
 import { useAuth as useSupabaseAuth } from './useAuth'
+import { ensureUserProfile } from '../lib/userProfileSync'
 import type { User } from '@supabase/supabase-js'
 
 export const useHybridAuth = () => {
@@ -16,12 +17,23 @@ export const useHybridAuth = () => {
   const { user: supabaseUser, loading: supabaseLoading, signOut: supabaseSignOut } = useSupabaseAuth()
 
   useEffect(() => {
+    const setupUserProfile = async (user: User, provider: 'clerk' | 'supabase') => {
+      const result = await ensureUserProfile(user, provider);
+      if (!result.success) {
+        console.error(`Failed to ensure user profile for ${provider} user:`, result.error);
+      } else if (result.created) {
+        console.log(`New user profile created for ${provider} user`);
+      } else if (result.updated) {
+        console.log(`User profile updated for ${provider} user`);
+      }
+    };
+
     // Determine which auth provider is active
     if (clerkLoaded && !supabaseLoading) {
       if (clerkUser) {
         setAuthProvider('clerk')
         // Convert Clerk user to Supabase-like user object for consistency
-        setCurrentUser({
+        const convertedUser = {
           id: clerkUser.id,
           email: clerkUser.primaryEmailAddress?.emailAddress || '',
           created_at: clerkUser.createdAt?.toISOString() || '',
@@ -34,10 +46,18 @@ export const useHybridAuth = () => {
             last_name: clerkUser.lastName,
           },
           app_metadata: {},
-        } as User)
+        } as User;
+        
+        setCurrentUser(convertedUser);
+        // Ensure user profile exists in database
+        setupUserProfile(convertedUser, 'clerk');
+        
       } else if (supabaseUser) {
         setAuthProvider('supabase')
         setCurrentUser(supabaseUser)
+        // Ensure user profile exists in database
+        setupUserProfile(supabaseUser, 'supabase');
+        
       } else {
         setAuthProvider(null)
         setCurrentUser(null)

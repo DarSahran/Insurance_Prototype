@@ -6,11 +6,11 @@ import {
   ArrowRight, Bell, Sun, AlertCircle, Loader
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { useAuth } from '../../hooks/useAuth.mock';
+import { useHybridAuth } from '../../hooks/useHybridAuth';
 import DashboardService, { type DashboardStats } from '../../lib/dashboardService';
 
 const DashboardHome: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useHybridAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,10 +23,16 @@ const DashboardHome: React.FC = () => {
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      if (!user?.id) {
+        setError('User not authenticated');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
-        const data = await DashboardService.getUserDashboardData(user?.id || 'demo-user');
+        const data = await DashboardService.getUserDashboardData(user.id);
         setDashboardData(data);
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -132,7 +138,14 @@ const DashboardHome: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}! 👋
+              Welcome back, {
+                dashboardData?.userProfile?.full_name || 
+                dashboardData?.userProfile?.first_name || 
+                user?.user_metadata?.full_name || 
+                user?.user_metadata?.first_name || 
+                user?.email?.split('@')[0] || 
+                'User'
+              }! 👋
             </h1>
             <p className="text-blue-100 text-lg">Here's your insurance overview for today</p>
             <div className="flex items-center space-x-4 mt-4 text-blue-100">
