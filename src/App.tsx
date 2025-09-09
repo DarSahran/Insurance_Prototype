@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
+import { useHybridAuth } from './hooks/useHybridAuth';
 import { useEffect } from 'react';
 import { LoginPage } from './components/Auth/LoginPage';
 import SignupPage from './components/Auth/SignupPage';
@@ -26,7 +26,7 @@ import HelpCenterPage from './pages/dashboard/HelpCenterPage';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { loading } = useAuth();
+  const { loading } = useHybridAuth();
   
   if (loading) {
     return (
@@ -45,7 +45,7 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 // Create wrapper components for auth pages
 const LoginWrapper = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading } = useHybridAuth();
 
   // If user is already authenticated, redirect to dashboard
   useEffect(() => {
@@ -100,7 +100,7 @@ const LoginWrapper = () => {
 
 // Create wrapper for signup page
 const SignupWrapper = () => {
-  const { user, loading } = useAuth();
+  const { user, loading } = useHybridAuth();
   const navigate = useNavigate();
 
   // If user is already authenticated, redirect to dashboard
@@ -156,7 +156,7 @@ const QuestionnaireWrapper = () => {
 // Create wrapper for landing page
 const LandingPageWrapper = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading } = useHybridAuth();
 
   // If user is authenticated, redirect to dashboard
   useEffect(() => {

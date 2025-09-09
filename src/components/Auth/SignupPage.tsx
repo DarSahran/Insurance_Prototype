@@ -83,8 +83,8 @@ const SignupPage: React.FC = () => {
       
       await clerkSignUp.authenticateWithRedirect({
         strategy: provider,
-        redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/questionnaire'
+        redirectUrl: '/dashboard',
+        redirectUrlComplete: '/dashboard'
       });
     } catch (error: any) {
       setError(error.message || `Failed to sign up with ${provider.replace('oauth_', '')}`);

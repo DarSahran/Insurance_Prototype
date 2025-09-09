@@ -28,8 +28,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, 
     try {
       await clerkSignIn.authenticateWithRedirect({
         strategy,
-        redirectUrl: '/',
-        redirectUrlComplete: '/'
+        redirectUrl: '/dashboard',
+        redirectUrlComplete: '/dashboard'
       })
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'OAuth sign-in failed' })
