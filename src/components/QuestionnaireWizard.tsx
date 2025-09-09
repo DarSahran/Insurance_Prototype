@@ -5,7 +5,7 @@ import HealthStep from './questionnaire/HealthStep';
 import LifestyleStep from './questionnaire/LifestyleStep';
 import FinancialStep from './questionnaire/FinancialStep';
 import AIAnalysisStep from './questionnaire/AIAnalysisStep';
-import { useAuth } from '../hooks/useAuth';
+import { useHybridAuth } from '../hooks/useHybridAuth';
 import { saveInsuranceQuestionnaire, updateQuestionnaire, getLatestQuestionnaire } from '../lib/database';
 
 interface QuestionnaireWizardProps {
@@ -27,7 +27,7 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
   const [errors, setErrors] = useState<{ general?: string }>({});
   const [existingQuestionnaireId, setExistingQuestionnaireId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const { user } = useAuth();
+  const { user } = useHybridAuth();
 
   // Load existing questionnaire data if user is authenticated
   useEffect(() => {
@@ -141,6 +141,7 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
       
       // Simulate AI processing and save final data
       setTimeout(async () => {
+        console.log('AI Processing completed, starting data save...');
         setFormData(prev => ({ ...prev, processing: false }));
         
         // Calculate risk score and premium estimate
@@ -168,6 +169,7 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
 
         // Save final questionnaire data to Supabase
         if (user) {
+          setIsSaving(true);
           try {
             const questionnaireData = {
               user_id: user.id,
@@ -178,33 +180,46 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
               ai_analysis: aiAnalysis,
               risk_score: riskScore,
               premium_estimate: premiumEstimate,
-              status: 'completed' as const
+              status: 'completed' as const,
+              completion_percentage: 100
             };
 
+            let saveResult;
             if (existingQuestionnaireId) {
-              const { error } = await updateQuestionnaire(existingQuestionnaireId, questionnaireData);
-              if (error) {
-                console.error('Error updating final questionnaire:', error);
-                setErrors({ general: 'Failed to save your results. Please try again.' });
-                return;
-              }
+              saveResult = await updateQuestionnaire(existingQuestionnaireId, questionnaireData);
             } else {
-              const { error } = await saveInsuranceQuestionnaire(questionnaireData);
-              if (error) {
-                console.error('Error saving final questionnaire:', error);
-                setErrors({ general: 'Failed to save your results. Please try again.' });
-                return;
-              }
+              saveResult = await saveInsuranceQuestionnaire(questionnaireData);
             }
+
+            if (saveResult.error) {
+              console.error('Error saving final questionnaire:', saveResult.error);
+              setErrors({ general: 'Failed to save your results. Please try again.' });
+              setIsSaving(false);
+              return;
+            }
+
+            console.log('Questionnaire saved successfully:', saveResult.data);
+            
+            // Wait a moment for the save to complete, then call onComplete
+            setTimeout(() => {
+              setIsSaving(false);
+              onComplete(finalData);
+            }, 1000);
+
           } catch (error) {
             console.error('Error saving questionnaire:', error);
             setErrors({ general: 'Failed to save your results. Please try again.' });
+            setIsSaving(false);
             return;
           }
+        } else {
+          // If no user, still call onComplete but show warning
+          console.warn('No authenticated user - questionnaire data not saved');
+          setTimeout(() => {
+            onComplete(finalData);
+          }, 1000);
         }
-
-        onComplete(finalData);
-      }, 8000);
+      }, 3000); // Reduced from 8000ms to 3000ms
     }
   };
 

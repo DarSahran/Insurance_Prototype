@@ -133,11 +133,37 @@ const SignupWrapper = () => {
 // Create wrapper for questionnaire
 const QuestionnaireWrapper = () => {
   const navigate = useNavigate();
+  const { user, loading } = useHybridAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if user is not authenticated (redirect will happen)
+  if (!user) {
+    return null;
+  }
 
   const handleQuestionnaireComplete = (data: any) => {
     // Save the data if needed, then redirect to dashboard
     console.log('Questionnaire completed:', data);
-    navigate('/dashboard');
+    // Force navigation to dashboard
+    window.location.href = '/dashboard';
   };
 
   const handleBack = () => {
