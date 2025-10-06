@@ -6,7 +6,6 @@ import SignupPage from './components/Auth/SignupPage';
 import LandingPage from './components/LandingPage';
 import QuestionnaireWizard from './components/QuestionnaireWizard';
 import DashboardLayout from './components/dashboard/DashboardLayout';
-import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import PoliciesPage from './pages/dashboard/PoliciesPage';
@@ -21,29 +20,12 @@ import FinancialPlanningPage from './pages/dashboard/FinancialPlanningPage';
 import FamilyManagementPage from './pages/dashboard/FamilyManagementPage';
 import DocumentCenterPage from './pages/dashboard/DocumentCenterPage';
 import ClaimsPage from './pages/dashboard/ClaimsPage';
-import ClaimDetailsPage from './pages/dashboard/ClaimDetailsPage';
 import PaymentsPage from './pages/dashboard/PaymentsPage';
 import MessagesPage from './pages/dashboard/MessagesPage';
 import SettingsPage from './pages/dashboard/SettingsPage';
 import HelpCenterPage from './pages/dashboard/HelpCenterPage';
 import { useAuth } from './hooks/useAuth';
-import DashboardHome from './pages/dashboard/DashboardHome';
-import PoliciesPage from './pages/dashboard/PoliciesPage';
-import PolicyDetailsPage from './pages/dashboard/PolicyDetailsPage';
-import AssessmentsPage from './pages/dashboard/AssessmentsPage';
-import AssessmentDetailsPage from './pages/dashboard/AssessmentDetailsPage';
-import NewAssessmentPage from './pages/dashboard/NewAssessmentPage';
-import AIInsightsPage from './pages/dashboard/AIInsightsPage';
-import RiskDashboardPage from './pages/dashboard/RiskDashboardPage';
-import HealthTrackingPage from './pages/dashboard/HealthTrackingPage';
-import FinancialPlanningPage from './pages/dashboard/FinancialPlanningPage';
-import FamilyManagementPage from './pages/dashboard/FamilyManagementPage';
-import DocumentCenterPage from './pages/dashboard/DocumentCenterPage';
-import ClaimsPage from './pages/dashboard/ClaimsPage';
-import PaymentsPage from './pages/dashboard/PaymentsPage';
-import MessagesPage from './pages/dashboard/MessagesPage';
-import SettingsPage from './pages/dashboard/SettingsPage';
-import HelpCenterPage from './pages/dashboard/HelpCenterPage';
+import ClaimDetailsPage from './pages/dashboard/ClaimDetailsPage';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -268,29 +250,7 @@ function App() {
         <Route path="/questionnaire" element={<QuestionnaireWrapper />} />          {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
-        
-        {/* Dashboard Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<DashboardHome />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="policies" element={<PoliciesPage />} />
-          <Route path="policies/:id" element={<PolicyDetailsPage />} />
-          <Route path="assessments" element={<AssessmentsPage />} />
-          <Route path="assessments/:id" element={<AssessmentDetailsPage />} />
-          <Route path="assessment/new" element={<NewAssessmentPage />} />
-          <Route path="ai-insights" element={<AIInsightsPage />} />
-          <Route path="risk" element={<RiskDashboardPage />} />
-          <Route path="health" element={<HealthTrackingPage />} />
-          <Route path="financial" element={<FinancialPlanningPage />} />
-          <Route path="family" element={<FamilyManagementPage />} />
-          <Route path="documents" element={<DocumentCenterPage />} />
-          <Route path="claims" element={<ClaimsPage />} />
-          <Route path="claims/:id" element={<ClaimDetailsPage />} />
-          <Route path="payments" element={<PaymentsPage />} />
-          <Route path="messages" element={<MessagesPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="help" element={<HelpCenterPage />} />
-        </Route>
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="policies" element={<PoliciesPage />} />
             <Route path="policies/:id" element={<PolicyDetailsPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />
@@ -303,6 +263,7 @@ function App() {
             <Route path="family" element={<FamilyManagementPage />} />
             <Route path="documents" element={<DocumentCenterPage />} />
             <Route path="claims" element={<ClaimsPage />} />
+            <Route path="claims/:id" element={<ClaimDetailsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
