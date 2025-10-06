@@ -4,19 +4,17 @@ import {
   Shield, Bell, Palette, Globe, Eye, Trash2, Download,
   Lock, Smartphone, Monitor, AlertTriangle
 } from 'lucide-react';
-import { useHybridAuth } from '../../hooks/useHybridAuth';
-import { getEnrichedUserProfile } from '../../lib/userProfileSync';
+import { useAuth } from '../../hooks/useAuth';
 
 const ProfilePage: React.FC = () => {
-  const { user } = useHybridAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
+    firstName: user?.user_metadata?.first_name || '',
+    lastName: user?.user_metadata?.last_name || '',
+    email: user?.email || '',
     phone: '',
     dateOfBirth: '',
     gender: '',
@@ -28,58 +26,6 @@ const ProfilePage: React.FC = () => {
     emergencyPhone: '',
     emergencyRelationship: ''
   });
-
-  // Load user profile data on component mount
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!user) return;
-      
-      try {
-        setLoading(true);
-        const result = await getEnrichedUserProfile(user);
-        
-        if (result.success && result.data) {
-          const profile = result.data;
-          setProfileData({
-            firstName: profile.first_name || '',
-            lastName: profile.last_name || '',
-            email: profile.email || '',
-            phone: profile.phone || '',
-            dateOfBirth: profile.date_of_birth || '',
-            gender: profile.gender || '',
-            street: profile.address?.street || '',
-            city: profile.address?.city || '',
-            state: profile.address?.state || '',
-            zipCode: profile.address?.zipCode || '',
-            emergencyName: '',
-            emergencyPhone: '',
-            emergencyRelationship: ''
-          });
-        } else {
-          // Fallback to auth metadata
-          setProfileData(prev => ({
-            ...prev,
-            firstName: user.user_metadata?.first_name || '',
-            lastName: user.user_metadata?.last_name || '',
-            email: user.email || '',
-          }));
-        }
-      } catch (error) {
-        console.error('Error loading user profile:', error);
-        // Fallback to auth metadata on error
-        setProfileData(prev => ({
-          ...prev,
-          firstName: user.user_metadata?.first_name || '',
-          lastName: user.user_metadata?.last_name || '',
-          email: user.email || '',
-        }));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUserProfile();
-  }, [user]);
 
   const [securitySettings, setSecuritySettings] = useState({
     twoFactorEnabled: false,

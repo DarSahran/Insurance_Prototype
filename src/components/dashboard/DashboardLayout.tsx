@@ -1,29 +1,17 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { 
-  Home, Shield, FileText, Brain, TrendingUp, Heart, 
+  Home, User, Shield, FileText, Brain, TrendingUp, Heart, 
   DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle, 
   Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown
 } from 'lucide-react';
-import { useHybridAuth } from '../../hooks/useHybridAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const location = useLocation();
-  const { user, loading, signOut } = useHybridAuth();
-
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  const { user, signOut } = useAuth();
 
   // Redirect to login if not authenticated
   if (!user) {
@@ -32,6 +20,7 @@ const DashboardLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Profile', href: '/dashboard/profile', icon: User },
     { name: 'Policies', href: '/dashboard/policies', icon: Shield },
     { name: 'Assessments', href: '/dashboard/assessments', icon: FileText },
     { name: 'AI Insights', href: '/dashboard/ai-insights', icon: Brain },
@@ -48,40 +37,11 @@ const DashboardLayout: React.FC = () => {
   ];
 
   const handleSignOut = async () => {
-    try {
-      // Set logout flag before clearing storage
-      sessionStorage.setItem('logging_out', 'true');
-      
-      // Sign out from auth provider first
-      await signOut();
-      
-      // Clear all browser storage after sign out
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Clear IndexedDB if it exists
-      if (window.indexedDB) {
-        try {
-          const databases = await window.indexedDB.databases();
-          databases.forEach(db => {
-            if (db.name) window.indexedDB.deleteDatabase(db.name);
-          });
-        } catch (e) {
-          // Ignore IndexedDB errors
-        }
-      }
-      
-      // Force navigation to landing page
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Force navigation even if logout fails
-      window.location.href = '/';
-    }
+    await signOut();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -91,62 +51,77 @@ const DashboardLayout: React.FC = () => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 flex-shrink-0">
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <Shield className="w-8 h-8 text-blue-600" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">SmartCover AI</h1>
-                <p className="text-xs text-gray-600">Insurance Dashboard</p>
-              </div>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <Shield className="w-8 h-8 text-blue-600" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">SmartCover AI</h1>
+              <p className="text-xs text-gray-600">Insurance Dashboard</p>
+            </div>
           </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          <nav className="flex-1 mt-6 px-3 overflow-y-auto">
-            <div className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href || 
-                  (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <item.icon className={`mr-3 h-5 w-5 ${
-                      isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
-                    }`} />
-                    {item.name}
-                  </Link>
-                );
-              })}
+        <nav className="mt-6 px-3">
+          <div className="space-y-1">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href || 
+                (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className={`mr-3 h-5 w-5 ${
+                    isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
+                  }`} />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* User info at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-medium">
+                {user.email?.charAt(0).toUpperCase()}
+              </span>
             </div>
-          </nav>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {user.user_metadata?.full_name || user.email}
+              </p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="lg:pl-64">
         {/* Top navigation */}
-        <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
+        <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-4">
               <button
@@ -192,6 +167,14 @@ const DashboardLayout: React.FC = () => {
                 {profileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                     <Link
+                      to="/dashboard/profile"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
+                    </Link>
+                    <Link
                       to="/dashboard/settings"
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setProfileDropdownOpen(false)}
@@ -215,7 +198,7 @@ const DashboardLayout: React.FC = () => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 min-h-0 bg-gray-50 overflow-auto">
+        <main className="flex-1">
           <Outlet />
         </main>
       </div>

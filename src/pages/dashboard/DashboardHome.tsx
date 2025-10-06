@@ -1,99 +1,143 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Shield, DollarSign, CreditCard, Target, Brain, 
-  Upload, Heart, Calendar, Plus,
-  ArrowRight, Bell, Sun, AlertCircle, Loader
+  Shield, DollarSign, CreditCard, Target, RefreshCw, Brain, 
+  Upload, TrendingUp, Heart, Zap, Calendar, Plus, CheckCircle,
+  ArrowRight, Activity, Bell, Sun, Cloud
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { useHybridAuth } from '../../hooks/useHybridAuth';
-import DashboardService, { type DashboardStats } from '../../lib/dashboardService';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { useAuth } from '../../hooks/useAuth';
 
 const DashboardHome: React.FC = () => {
-  const { user } = useHybridAuth();
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [wellnessScore, setWellnessScore] = useState(78);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      if (!user?.id) {
-        setError('User not authenticated');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await DashboardService.getUserDashboardData(user.id);
-        setDashboardData(data);
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err);
-        setError('Failed to load dashboard data. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDashboardData();
-  }, [user?.id]);
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to Load Dashboard</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!dashboardData) return null;
-
-  // Generate risk trend data from recent activity
+  // Mock data for charts
   const riskTrendData = [
-    { month: 'Jan', score: dashboardData.riskScore + 15 },
-    { month: 'Feb', score: dashboardData.riskScore + 12 },
-    { month: 'Mar', score: dashboardData.riskScore + 8 },
-    { month: 'Apr', score: dashboardData.riskScore + 5 },
-    { month: 'May', score: dashboardData.riskScore + 2 },
-    { month: 'Jun', score: dashboardData.riskScore },
+    { month: 'Jan', score: 45 },
+    { month: 'Feb', score: 42 },
+    { month: 'Mar', score: 38 },
+    { month: 'Apr', score: 35 },
+    { month: 'May', score: 32 },
+    { month: 'Jun', score: 28 },
   ];
 
-  // Generate coverage data based on real policies
   const coverageData = [
-    { name: 'Life Insurance', value: dashboardData.totalPremium * 0.6, color: '#3B82F6' },
-    { name: 'Health Insurance', value: dashboardData.totalPremium * 0.25, color: '#10B981' },
-    { name: 'Disability', value: dashboardData.totalPremium * 0.1, color: '#F59E0B' },
-    { name: 'Other', value: dashboardData.totalPremium * 0.05, color: '#8B5CF6' },
+    { name: 'Life Insurance', value: 500000, color: '#3B82F6' },
+    { name: 'Health Insurance', value: 250000, color: '#10B981' },
+    { name: 'Disability', value: 100000, color: '#F59E0B' },
+    { name: 'Other', value: 50000, color: '#8B5CF6' },
+  ];
+
+  const savingsData = [
+    { name: 'Traditional', value: 245, color: '#EF4444' },
+    { name: 'AI-Optimized', value: 156, color: '#10B981' },
+  ];
+
+  const recentActivities = [
+    {
+      type: 'policy_renewal',
+      icon: RefreshCw,
+      title: 'Policy Renewal Reminder',
+      description: 'Your life insurance policy expires in 30 days',
+      timestamp: '2 hours ago',
+      action: 'Review Policy',
+      link: '/dashboard/policies/12345',
+      color: 'text-blue-600 bg-blue-50'
+    },
+    {
+      type: 'ai_insight',
+      icon: Brain,
+      title: 'New AI Insight Available',
+      description: 'Your risk score improved due to recent health improvements',
+      timestamp: '1 day ago',
+      action: 'View Insights',
+      link: '/dashboard/ai-insights',
+      color: 'text-purple-600 bg-purple-50'
+    },
+    {
+      type: 'payment',
+      icon: CreditCard,
+      title: 'Payment Processed',
+      description: '$245 premium payment successful',
+      timestamp: '3 days ago',
+      action: 'View Receipt',
+      link: '/dashboard/payments',
+      color: 'text-green-600 bg-green-50'
+    },
+    {
+      type: 'document',
+      icon: Upload,
+      title: 'Document Uploaded',
+      description: 'Medical records processed successfully',
+      timestamp: '1 week ago',
+      action: 'View Documents',
+      link: '/dashboard/documents',
+      color: 'text-orange-600 bg-orange-50'
+    }
+  ];
+
+  const aiRecommendations = [
+    {
+      type: 'coverage_optimization',
+      icon: TrendingUp,
+      title: 'Optimize Your Coverage',
+      description: 'Based on your recent life changes, consider increasing coverage by $50K',
+      confidence: '94%',
+      action: 'Calculate Coverage',
+      link: '/dashboard/financial',
+      priority: 'high'
+    },
+    {
+      type: 'premium_reduction',
+      icon: DollarSign,
+      title: 'Potential Savings Detected',
+      description: 'Your improved health metrics could reduce premiums by 15%',
+      confidence: '87%',
+      action: 'Start Reassessment',
+      link: '/dashboard/assessment/new',
+      priority: 'medium'
+    },
+    {
+      type: 'health_improvement',
+      icon: Heart,
+      title: 'Health Goal Achievement',
+      description: 'Congratulations on reaching your fitness goals! This may impact your rates',
+      confidence: '92%',
+      action: 'Update Health Info',
+      link: '/dashboard/health',
+      priority: 'medium'
+    }
+  ];
+
+  const upcomingEvents = [
+    {
+      type: 'policy_renewal',
+      date: '2025-10-15',
+      title: 'Life Insurance Renewal',
+      description: 'Review and renew your policy',
+      action: 'Review Now'
+    },
+    {
+      type: 'health_checkup',
+      date: '2025-10-30',
+      title: 'Annual Health Assessment',
+      description: 'Complete your yearly health review',
+      action: 'Schedule Now'
+    },
+    {
+      type: 'payment_due',
+      date: '2025-11-01',
+      title: 'Premium Payment Due',
+      description: 'Monthly premium payment of $245',
+      action: 'Pay Now'
+    }
   ];
 
   const quickActions = [
@@ -138,14 +182,7 @@ const DashboardHome: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {
-                dashboardData?.userProfile?.full_name || 
-                dashboardData?.userProfile?.first_name || 
-                user?.user_metadata?.full_name || 
-                user?.user_metadata?.first_name || 
-                user?.email?.split('@')[0] || 
-                'User'
-              }! 👋
+              Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0]}! 👋
             </h1>
             <p className="text-blue-100 text-lg">Here's your insurance overview for today</p>
             <div className="flex items-center space-x-4 mt-4 text-blue-100">
@@ -179,10 +216,8 @@ const DashboardHome: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <Shield className="w-8 h-8" />
               <div className="text-right">
-                <div className="text-2xl font-bold">{dashboardData.activePolicies}</div>
-                <div className="text-blue-100 text-sm">
-                  {dashboardData.totalPolicies} total policies
-                </div>
+                <div className="text-2xl font-bold">3</div>
+                <div className="text-blue-100 text-sm">+5.2% from last month</div>
               </div>
             </div>
             <div>
@@ -197,10 +232,8 @@ const DashboardHome: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <DollarSign className="w-8 h-8" />
               <div className="text-right">
-                <div className="text-2xl font-bold">
-                  ${(dashboardData.totalPremium / 1000).toFixed(0)}K
-                </div>
-                <div className="text-green-100 text-sm">Total coverage</div>
+                <div className="text-2xl font-bold">$900K</div>
+                <div className="text-green-100 text-sm">+12.1% increase</div>
               </div>
             </div>
             <div>
@@ -215,10 +248,8 @@ const DashboardHome: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="w-8 h-8" />
               <div className="text-right">
-                <div className="text-2xl font-bold">
-                  ${dashboardData.monthlyPremium.toFixed(0)}
-                </div>
-                <div className="text-purple-100 text-sm">Monthly premium</div>
+                <div className="text-2xl font-bold">$156</div>
+                <div className="text-purple-100 text-sm">-8.3% saved</div>
               </div>
             </div>
             <div>
@@ -233,16 +264,13 @@ const DashboardHome: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <Target className="w-8 h-8" />
               <div className="text-right">
-                <div className="text-2xl font-bold">{dashboardData.riskScore}</div>
-                <div className="text-orange-100 text-sm">
-                  {dashboardData.riskScore < 30 ? 'Low Risk' : 
-                   dashboardData.riskScore < 60 ? 'Medium Risk' : 'High Risk'}
-                </div>
+                <div className="text-2xl font-bold">28</div>
+                <div className="text-orange-100 text-sm">Improved from last assessment</div>
               </div>
             </div>
             <div>
               <h3 className="font-semibold">Risk Score</h3>
-              <p className="text-orange-100 text-sm">View details</p>
+              <p className="text-orange-100 text-sm">Low Risk Category</p>
             </div>
           </div>
         </Link>
@@ -259,55 +287,26 @@ const DashboardHome: React.FC = () => {
               <Bell className="w-5 h-5 text-gray-400" />
             </div>
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {dashboardData.recentActivity.length > 0 ? (
-                dashboardData.recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className={`p-2 rounded-lg ${
-                      activity.type === 'policy' ? 'text-blue-600 bg-blue-50' :
-                      activity.type === 'claim' ? 'text-green-600 bg-green-50' :
-                      activity.type === 'payment' ? 'text-purple-600 bg-purple-50' :
-                      activity.type === 'assessment' ? 'text-orange-600 bg-orange-50' :
-                      'text-gray-600 bg-gray-50'
-                    }`}>
-                      {activity.type === 'policy' && <Shield className="w-5 h-5" />}
-                      {activity.type === 'claim' && <DollarSign className="w-5 h-5" />}
-                      {activity.type === 'payment' && <CreditCard className="w-5 h-5" />}
-                      {activity.type === 'assessment' && <Target className="w-5 h-5" />}
-                      {activity.type === 'health' && <Heart className="w-5 h-5" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900">{activity.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-gray-500">
-                          {new Date(activity.date).toLocaleDateString()}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          activity.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          activity.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          activity.status === 'failed' ? 'bg-red-100 text-red-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {activity.status}
-                        </span>
-                      </div>
+              {recentActivities.map((activity, index) => (
+                <div key={index} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className={`p-2 rounded-lg ${activity.color}`}>
+                    <activity.icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900">{activity.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-gray-500">{activity.timestamp}</span>
+                      <Link 
+                        to={activity.link}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        {activity.action} →
+                      </Link>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 mb-4">
-                    <Bell className="w-12 h-12 mx-auto" />
-                  </div>
-                  <p className="text-gray-500">No recent activity to display</p>
-                  <Link 
-                    to="/dashboard/assessment/new" 
-                    className="inline-block mt-2 text-blue-600 hover:text-blue-800"
-                  >
-                    Start your first assessment →
-                  </Link>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 
@@ -318,56 +317,34 @@ const DashboardHome: React.FC = () => {
               <Brain className="w-5 h-5 text-purple-600" />
             </div>
             <div className="space-y-4">
-              {dashboardData.insights.length > 0 ? (
-                dashboardData.insights.map((insight, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start space-x-3">
-                      <div className={`p-2 rounded-lg ${
-                        insight.priority === 'high' ? 'bg-red-50 text-red-600' :
-                        insight.priority === 'medium' ? 'bg-yellow-50 text-yellow-600' :
-                        'bg-green-50 text-green-600'
-                      }`}>
-                        {insight.type === 'risk_alert' && <Target className="w-5 h-5" />}
-                        {insight.type === 'savings_opportunity' && <DollarSign className="w-5 h-5" />}
-                        {insight.type === 'health_improvement' && <Heart className="w-5 h-5" />}
-                        {insight.type === 'policy_recommendation' && <Shield className="w-5 h-5" />}
-                        {!['risk_alert', 'savings_opportunity', 'health_improvement', 'policy_recommendation'].includes(insight.type) && <Brain className="w-5 h-5" />}
+              {aiRecommendations.map((rec, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start space-x-3">
+                    <div className={`p-2 rounded-lg ${
+                      rec.priority === 'high' ? 'bg-red-50 text-red-600' :
+                      rec.priority === 'medium' ? 'bg-yellow-50 text-yellow-600' :
+                      'bg-green-50 text-green-600'
+                    }`}>
+                      <rec.icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-gray-900">{rec.title}</h3>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                          {rec.confidence} confidence
+                        </span>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-gray-900">{insight.title}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            insight.priority === 'high' ? 'bg-red-100 text-red-600' :
-                            insight.priority === 'medium' ? 'bg-yellow-100 text-yellow-600' :
-                            'bg-green-100 text-green-600'
-                          }`}>
-                            {insight.priority} priority
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
-                            {insight.action} <ArrowRight className="w-3 h-3 inline ml-1" />
-                          </span>
-                          {insight.estimatedImpact && (
-                            <span className="text-xs text-gray-500">
-                              Est. savings: ${insight.estimatedImpact.toFixed(0)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
+                      <Link 
+                        to={rec.link}
+                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium mt-2"
+                      >
+                        {rec.action} <ArrowRight className="w-3 h-3 ml-1" />
+                      </Link>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 mb-4">
-                    <Brain className="w-12 h-12 mx-auto" />
-                  </div>
-                  <p className="text-gray-500">No AI insights available yet</p>
-                  <p className="text-sm text-gray-400 mt-1">Complete an assessment to get personalized recommendations</p>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
@@ -395,7 +372,7 @@ const DashboardHome: React.FC = () => {
               </ResponsiveContainer>
             </div>
             <p className="text-sm text-gray-600 mt-4">
-              Your risk score has improved by {riskTrendData[0].score - dashboardData.riskScore} points over the last 6 months
+              Your risk score has improved by 17 points over the last 6 months
             </p>
           </div>
 
@@ -418,7 +395,7 @@ const DashboardHome: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `$${Number(value).toLocaleString()}`} />
+                  <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -435,54 +412,27 @@ const DashboardHome: React.FC = () => {
             </div>
           </div>
 
-          {/* Upcoming Payments */}
+          {/* Upcoming Events */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Upcoming Payments</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Upcoming Events & Reminders</h2>
             <div className="space-y-4">
-              {dashboardData.upcomingPayments.length > 0 ? (
-                dashboardData.upcomingPayments.map((payment, index) => (
-                  <div key={index} className="flex items-center space-x-4 p-3 border border-gray-200 rounded-lg">
-                    <div className="flex-shrink-0">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        payment.status === 'overdue' ? 'bg-red-50' : 'bg-blue-50'
-                      }`}>
-                        <CreditCard className={`w-6 h-6 ${
-                          payment.status === 'overdue' ? 'text-red-600' : 'text-blue-600'
-                        }`} />
-                      </div>
+              {upcomingEvents.map((event, index) => (
+                <div key={index} className="flex items-center space-x-4 p-3 border border-gray-200 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-6 h-6 text-blue-600" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900">
-                        Payment Due - Policy {payment.policyNumber}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Premium payment of ${payment.amount.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Due: {new Date(payment.dueDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Link
-                      to="/dashboard/payments"
-                      className={`text-sm font-medium px-3 py-1 rounded ${
-                        payment.status === 'overdue' 
-                          ? 'text-red-600 bg-red-50 hover:bg-red-100' 
-                          : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                      }`}
-                    >
-                      Pay Now
-                    </Link>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 mb-4">
-                    <Calendar className="w-12 h-12 mx-auto" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900">{event.title}</h3>
+                    <p className="text-sm text-gray-600">{event.description}</p>
+                    <p className="text-xs text-gray-500 mt-1">{event.date}</p>
                   </div>
-                  <p className="text-gray-500">No upcoming payments</p>
-                  <p className="text-sm text-gray-400 mt-1">All payments are up to date</p>
+                  <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    {event.action}
+                  </button>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>

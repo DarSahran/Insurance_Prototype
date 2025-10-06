@@ -1,310 +1,297 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
-  DollarSign, TrendingUp, Calculator, PieChart, Target, 
-  Download, CreditCard, Home, GraduationCap, Baby, Heart
+  DollarSign, Calculator, TrendingUp, PieChart, 
+  Target, Calendar, Plus, Download, RefreshCw,
+  AlertTriangle, CheckCircle, Users, Home, Car,
+  GraduationCap, Heart, Shield
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-         PieChart as RechartsPieChart, Pie, Cell, AreaChart, Area, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const FinancialPlanningPage: React.FC = () => {
-  const [lifeEvent, setLifeEvent] = useState('');
+  const [selectedScenario, setSelectedScenario] = useState('current');
+  const [coverageAmount, setCoverageAmount] = useState(500000);
+  const [policyTerm, setPolicyTerm] = useState(30);
 
   // Mock financial data
   const currentFinancials = {
-    income: 85000,
+    annualIncome: 85000,
     monthlyExpenses: 4200,
-    debt: 150000,
-    savings: 25000,
-    currentCoverage: 300000,
-    recommendedCoverage: 850000
+    existingDebt: 250000,
+    emergencyFund: 25000,
+    currentInsurance: 300000,
+    dependents: 2,
+    retirementSavings: 45000
   };
 
-  const lifeEvents = [
-    { id: 'marriage', name: 'Getting Married', icon: Heart, impact: '+$200K coverage' },
-    { id: 'home', name: 'Buying a Home', icon: Home, impact: '+$400K coverage' },
-    { id: 'baby', name: 'Having a Baby', icon: Baby, impact: '+$300K coverage' },
-    { id: 'education', name: 'Child\'s Education', icon: GraduationCap, impact: '+$250K coverage' },
-    { id: 'business', name: 'Starting a Business', icon: TrendingUp, impact: '+$500K coverage' },
-    { id: 'retirement', name: 'Planning Retirement', icon: Target, impact: 'Adjust term length' }
-  ];
-
-  const coverageBreakdown = [
-    { category: 'Income Replacement', amount: 510000, percentage: 60, color: '#3B82F6' },
-    { category: 'Debt Coverage', amount: 150000, percentage: 18, color: '#10B981' },
-    { category: 'Emergency Fund', amount: 50000, percentage: 6, color: '#F59E0B' },
-    { category: 'Child Education', amount: 100000, percentage: 12, color: '#8B5CF6' },
-    { category: 'Final Expenses', amount: 40000, percentage: 4, color: '#EF4444' }
-  ];
-
-  const premiumComparison = [
-    { age: 25, term20: 25, term30: 35, whole: 180 },
-    { age: 30, term20: 30, term30: 42, whole: 220 },
-    { age: 35, term20: 45, term30: 62, whole: 280 },
-    { age: 40, term20: 75, term30: 98, whole: 360 },
-    { age: 45, term20: 125, term30: 155, whole: 480 },
-    { age: 50, term20: 200, term30: 245, whole: 620 }
-  ];
-
-  const savingsProjection = [
-    { year: 2025, traditional: 89, ai: 89, savings: 0 },
-    { year: 2026, traditional: 95, ai: 85, savings: 120 },
-    { year: 2027, traditional: 102, ai: 82, savings: 360 },
-    { year: 2028, traditional: 109, ai: 78, savings: 732 },
-    { year: 2029, traditional: 117, ai: 75, savings: 1236 },
-    { year: 2030, traditional: 125, ai: 72, savings: 1884 }
-  ];
-
-  const riskFactors = [
+  const coverageRecommendations = [
     {
-      factor: 'Income Stability',
-      score: 85,
-      status: 'good',
-      description: 'Stable employment in growing industry'
+      scenario: 'Conservative',
+      amount: 400000,
+      reasoning: 'Covers existing debt and 5 years of expenses',
+      monthlyPremium: 67.50,
+      components: [
+        { name: 'Debt Coverage', amount: 250000 },
+        { name: 'Income Replacement (5 years)', amount: 150000 }
+      ]
     },
     {
-      factor: 'Debt-to-Income Ratio',
-      score: 72,
-      status: 'fair',
-      description: '28% DTI - within acceptable range'
+      scenario: 'Recommended',
+      amount: 650000,
+      reasoning: 'Comprehensive protection for family needs',
+      monthlyPremium: 89.99,
+      components: [
+        { name: 'Debt Coverage', amount: 250000 },
+        { name: 'Income Replacement (7 years)', amount: 300000 },
+        { name: 'Education Fund', amount: 100000 }
+      ]
     },
     {
-      factor: 'Emergency Savings',
-      score: 60,
-      status: 'needs_improvement',
-      description: '3 months expenses - recommend 6 months'
-    },
-    {
-      factor: 'Health & Lifestyle',
-      score: 92,
-      status: 'excellent',
-      description: 'Excellent health profile reduces risk'
+      scenario: 'Comprehensive',
+      amount: 850000,
+      reasoning: 'Maximum protection with future growth',
+      monthlyPremium: 125.75,
+      components: [
+        { name: 'Debt Coverage', amount: 250000 },
+        { name: 'Income Replacement (10 years)', amount: 400000 },
+        { name: 'Education Fund', amount: 150000 },
+        { name: 'Future Expenses', amount: 50000 }
+      ]
     }
   ];
 
-  const calculatorInputs = {
-    income: 85000,
-    spouse_income: 45000,
-    monthly_expenses: 4200,
-    mortgage: 150000,
-    other_debt: 25000,
-    children: 1,
-    education_cost: 50000,
-    funeral_costs: 15000,
-    years_to_cover: 20
+  const expenseBreakdown = [
+    { category: 'Housing', amount: 1800, percentage: 43 },
+    { category: 'Transportation', amount: 650, percentage: 15 },
+    { category: 'Food & Dining', amount: 550, percentage: 13 },
+    { category: 'Utilities', amount: 300, percentage: 7 },
+    { category: 'Insurance', amount: 400, percentage: 10 },
+    { category: 'Entertainment', amount: 250, percentage: 6 },
+    { category: 'Other', amount: 250, percentage: 6 }
+  ];
+
+  const projectionData = [
+    { year: 2024, income: 85000, expenses: 50400, insurance: 300000, recommended: 650000 },
+    { year: 2025, income: 89250, expenses: 52920, insurance: 300000, recommended: 682500 },
+    { year: 2026, income: 93713, expenses: 55566, insurance: 300000, recommended: 716625 },
+    { year: 2027, income: 98398, expenses: 58344, insurance: 300000, recommended: 752456 },
+    { year: 2028, income: 103318, expenses: 61261, insurance: 300000, recommended: 790079 }
+  ];
+
+  const lifeEvents = [
+    {
+      event: 'Marriage',
+      impact: 'Increase coverage by $100K-200K',
+      timeline: 'Immediate',
+      priority: 'high',
+      icon: Heart
+    },
+    {
+      event: 'First Child',
+      impact: 'Add $250K for education and care',
+      timeline: 'Before birth',
+      priority: 'high',
+      icon: Users
+    },
+    {
+      event: 'Home Purchase',
+      impact: 'Cover mortgage amount',
+      timeline: 'At closing',
+      priority: 'medium',
+      icon: Home
+    },
+    {
+      event: 'Career Advancement',
+      impact: 'Increase based on new income',
+      timeline: 'Within 6 months',
+      priority: 'medium',
+      icon: TrendingUp
+    },
+    {
+      event: 'Retirement Planning',
+      impact: 'May reduce coverage needs',
+      timeline: '5-10 years before',
+      priority: 'low',
+      icon: Calendar
+    }
+  ];
+
+  const calculatePremium = (amount: number, term: number) => {
+    // Simplified premium calculation based on age, amount, and term
+    const baseRate = 0.12; // per $1000 per month
+    const termMultiplier = term === 20 ? 0.8 : term === 30 ? 1.0 : 1.2;
+    return (amount / 1000) * baseRate * termMultiplier;
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
-  const calculateCoverage = () => {
-    const incomeReplacement = calculatorInputs.income * calculatorInputs.years_to_cover * 0.7;
-    const debtCoverage = calculatorInputs.mortgage + calculatorInputs.other_debt;
-    const educationCosts = calculatorInputs.children * calculatorInputs.education_cost;
-    const finalExpenses = calculatorInputs.funeral_costs;
-    
-    return incomeReplacement + debtCoverage + educationCosts + finalExpenses;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'low': return 'text-green-600 bg-green-50 border-green-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
   };
+
+  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16'];
 
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Financial Planning & Coverage Calculator</h1>
-          <p className="text-gray-600 mt-1">Plan your financial future and optimize your insurance coverage</p>
+          <h1 className="text-2xl font-bold text-gray-900">Financial Planning & Coverage Calculator</h1>
+          <p className="text-gray-600">Dashboard &gt; Financial Planning</p>
         </div>
         <div className="flex space-x-3">
-          <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <Calculator className="w-4 h-4" />
-            <span>New Calculation</span>
-          </button>
           <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+            <RefreshCw className="w-4 h-4" />
+            <span>Update Data</span>
+          </button>
+          <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             <Download className="w-4 h-4" />
             <span>Export Plan</span>
           </button>
         </div>
       </div>
 
-      {/* Financial Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Financial Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <DollarSign className="w-8 h-8 text-green-600" />
-            <span className="text-2xl font-bold text-green-600">
-              ${(currentFinancials.income / 1000).toFixed(0)}K
-            </span>
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-green-50 rounded-lg">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Annual Income</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentFinancials.annualIncome)}</p>
+            </div>
           </div>
-          <h3 className="font-semibold text-gray-900">Annual Income</h3>
-          <p className="text-sm text-gray-600">Primary income source</p>
         </div>
-
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <CreditCard className="w-8 h-8 text-red-600" />
-            <span className="text-2xl font-bold text-red-600">
-              ${(currentFinancials.debt / 1000).toFixed(0)}K
-            </span>
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-red-50 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Monthly Expenses</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentFinancials.monthlyExpenses)}</p>
+            </div>
           </div>
-          <h3 className="font-semibold text-gray-900">Total Debt</h3>
-          <p className="text-sm text-gray-600">Mortgage + other debt</p>
         </div>
-
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Target className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold text-blue-600">
-              ${(currentFinancials.currentCoverage / 1000).toFixed(0)}K
-            </span>
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Existing Debt</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentFinancials.existingDebt)}</p>
+            </div>
           </div>
-          <h3 className="font-semibold text-gray-900">Current Coverage</h3>
-          <p className="text-sm text-gray-600">Existing life insurance</p>
         </div>
-
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <TrendingUp className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-purple-600">
-              ${(currentFinancials.recommendedCoverage / 1000).toFixed(0)}K
-            </span>
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <Shield className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Current Coverage</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentFinancials.currentInsurance)}</p>
+            </div>
           </div>
-          <h3 className="font-semibold text-gray-900">Recommended Coverage</h3>
-          <p className="text-sm text-gray-600">AI-calculated optimal amount</p>
         </div>
       </div>
 
       {/* Coverage Calculator */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Calculator Inputs */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Calculator</h2>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Annual Income</label>
-                <input
-                  type="number"
-                  value={calculatorInputs.income}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => console.log('Income changed:', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Spouse Income</label>
-                <input
-                  type="number"
-                  value={calculatorInputs.spouse_income}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => console.log('Spouse income changed:', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Expenses</label>
-                <input
-                  type="number"
-                  value={calculatorInputs.monthly_expenses}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => console.log('Expenses changed:', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Number of Children</label>
-                <input
-                  type="number"
-                  value={calculatorInputs.children}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => console.log('Children changed:', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mortgage Balance</label>
-                <input
-                  type="number"
-                  value={calculatorInputs.mortgage}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => console.log('Mortgage changed:', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Other Debt</label>
-                <input
-                  type="number"
-                  value={calculatorInputs.other_debt}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => console.log('Other debt changed:', e.target.value)}
-                />
-              </div>
-            </div>
-
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Coverage Calculator</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Years to Cover</label>
-              <select 
-                value={calculatorInputs.years_to_cover}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                onChange={(e) => console.log('Years changed:', e.target.value)}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Desired Coverage Amount
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="number"
+                  value={coverageAmount}
+                  onChange={(e) => setCoverageAmount(Number(e.target.value))}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="500000"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Policy Term (Years)
+              </label>
+              <select
+                value={policyTerm}
+                onChange={(e) => setPolicyTerm(Number(e.target.value))}
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value={10}>10 years</option>
-                <option value={15}>15 years</option>
-                <option value={20}>20 years</option>
-                <option value={25}>25 years</option>
-                <option value={30}>30 years</option>
+                <option value={10}>10 Years</option>
+                <option value={20}>20 Years</option>
+                <option value={30}>30 Years</option>
               </select>
             </div>
 
-            <button className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-              Calculate Recommended Coverage
-            </button>
-          </div>
-        </div>
-
-        {/* Coverage Breakdown */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Recommended Coverage Breakdown</h2>
-          <div className="text-center mb-6">
-            <p className="text-3xl font-bold text-blue-600">${calculateCoverage().toLocaleString()}</p>
-            <p className="text-gray-600">Total Recommended Coverage</p>
-          </div>
-          
-          <div className="h-64 mb-6">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsPieChart>
-                <Pie
-                  data={coverageBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="amount"
-                >
-                  {coverageBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">Estimated Premium</h4>
+              <div className="text-3xl font-bold text-blue-600">
+                {formatCurrency(calculatePremium(coverageAmount, policyTerm))}/month
+              </div>
+              <p className="text-sm text-blue-700 mt-1">
+                Based on your current risk profile and selected coverage
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {coverageBreakdown.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-sm font-medium text-gray-900">{item.category}</span>
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-900">Coverage Recommendations</h4>
+            {coverageRecommendations.map((rec, index) => (
+              <div 
+                key={index} 
+                className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                  selectedScenario === rec.scenario.toLowerCase() 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => {
+                  setSelectedScenario(rec.scenario.toLowerCase());
+                  setCoverageAmount(rec.amount);
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="font-medium text-gray-900">{rec.scenario}</h5>
+                  <span className="text-lg font-bold text-blue-600">
+                    {formatCurrency(rec.monthlyPremium)}/mo
+                  </span>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">${item.amount.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">{item.percentage}%</p>
+                <p className="text-sm text-gray-600 mb-3">{rec.reasoning}</p>
+                <div className="space-y-1">
+                  {rec.components.map((component, idx) => (
+                    <div key={idx} className="flex justify-between text-xs text-gray-500">
+                      <span>{component.name}</span>
+                      <span>{formatCurrency(component.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <div className="flex justify-between font-medium">
+                    <span>Total Coverage</span>
+                    <span>{formatCurrency(rec.amount)}</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -312,191 +299,214 @@ const FinancialPlanningPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Life Events Impact */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Life Events Impact Calculator</h2>
-        <p className="text-gray-600 mb-6">See how major life events affect your insurance needs</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {lifeEvents.map((event) => (
-            <button
-              key={event.id}
-              onClick={() => setLifeEvent(event.id)}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                lifeEvent === event.id 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <event.icon className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium text-gray-900">{event.name}</h3>
-                  <p className="text-sm text-gray-600">{event.impact}</p>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {lifeEvent && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Impact Analysis</h4>
-            <p className="text-blue-800 text-sm">
-              Based on your selection, we recommend adjusting your coverage. 
-              This change would affect your premium by approximately $15-25/month.
-            </p>
-            <button className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
-              Get Updated Quote
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Premium Comparison & Savings */}
+      {/* Expense Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Premium by Age */}
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Premium Comparison by Age</h3>
-          <div className="h-64">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Monthly Expense Breakdown</h3>
+          <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={premiumComparison}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="term20" fill="#3B82F6" name="20-Year Term" />
-                <Bar dataKey="term30" fill="#10B981" name="30-Year Term" />
-                <Bar dataKey="whole" fill="#EF4444" name="Whole Life" />
-              </BarChart>
+              <RechartsPieChart>
+                <Pie
+                  data={expenseBreakdown}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={120}
+                  paddingAngle={5}
+                  dataKey="amount"
+                >
+                  {expenseBreakdown.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              </RechartsPieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex items-center justify-center space-x-6 mt-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">20-Year Term</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">30-Year Term</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Whole Life</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Savings Projection */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">AI vs Traditional Savings</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={savingsProjection}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Area 
-                  type="monotone" 
-                  dataKey="savings" 
-                  stroke="#10B981" 
-                  fill="#10B981"
-                  fillOpacity={0.3}
-                  strokeWidth={3}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="traditional" 
-                  stroke="#EF4444" 
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="ai" 
-                  stroke="#3B82F6" 
-                  strokeWidth={3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="text-center mt-4">
-            <p className="text-2xl font-bold text-green-600">$1,884</p>
-            <p className="text-sm text-gray-600">Projected 5-year savings with AI optimization</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Risk Assessment */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Financial Risk Assessment</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {riskFactors.map((factor, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-2">{factor.factor}</h4>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl font-bold text-gray-900">{factor.score}</span>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getScoreColor(factor.score)}`}>
-                  {factor.status.replace('_', ' ')}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            {expenseBreakdown.map((item, index) => (
+              <div key={index} className="flex items-center space-x-2 text-sm">
                 <div 
-                  className={`h-2 rounded-full ${
-                    factor.score >= 80 ? 'bg-green-500' :
-                    factor.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${factor.score}%` }}
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
+                <span className="text-gray-600">{item.category}</span>
+                <span className="font-medium">{formatCurrency(item.amount)}</span>
               </div>
-              <p className="text-sm text-gray-600">{factor.description}</p>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Coverage Gap Analysis</h3>
+          <div className="space-y-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <h4 className="font-medium text-red-900">Coverage Gap Identified</h4>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-red-700">Recommended Coverage:</span>
+                  <span className="font-medium text-red-900">{formatCurrency(650000)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-red-700">Current Coverage:</span>
+                  <span className="font-medium text-red-900">{formatCurrency(currentFinancials.currentInsurance)}</span>
+                </div>
+                <div className="flex justify-between border-t border-red-200 pt-2">
+                  <span className="text-red-700 font-medium">Gap:</span>
+                  <span className="font-bold text-red-900">{formatCurrency(650000 - currentFinancials.currentInsurance)}</span>
+                </div>
+              </div>
             </div>
-          ))}
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900">Risk Factors</h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                  <span className="text-sm text-yellow-800">Insufficient emergency fund</span>
+                  <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Medium Risk</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                  <span className="text-sm text-red-800">High debt-to-income ratio</span>
+                  <span className="text-xs bg-red-200 text-red-800 px-2 py-1 rounded-full">High Risk</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <span className="text-sm text-green-800">Stable income source</span>
+                  <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">Low Risk</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Financial Planning Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link
-            to="/dashboard/assessment/new"
-            className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
-          >
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Calculator className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900">Get New Quote</h3>
-              <p className="text-sm text-gray-600">Calculate updated premiums</p>
-            </div>
-          </Link>
+      {/* Financial Projections */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">5-Year Financial Projections</h3>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={projectionData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="year" />
+              <YAxis />
+              <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              <Line 
+                type="monotone" 
+                dataKey="income" 
+                stroke="#10B981" 
+                strokeWidth={3}
+                name="Annual Income"
+                dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="expenses" 
+                stroke="#EF4444" 
+                strokeWidth={2}
+                name="Annual Expenses"
+                dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="recommended" 
+                stroke="#3B82F6" 
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                name="Recommended Coverage"
+                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-4 flex items-center justify-center space-x-6 text-sm">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span>Annual Income</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <span>Annual Expenses</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+            <span>Recommended Coverage</span>
+          </div>
+        </div>
+      </div>
 
-          <Link
-            to="/dashboard/policies"
-            className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
-          >
-            <div className="p-2 bg-green-100 rounded-lg">
-              <PieChart className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900">Review Policies</h3>
-              <p className="text-sm text-gray-600">Optimize existing coverage</p>
-            </div>
-          </Link>
+      {/* Life Events Planning */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Life Events & Coverage Planning</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {lifeEvents.map((event, index) => {
+            const IconComponent = event.icon;
+            return (
+              <div key={index} className={`border-2 rounded-lg p-4 ${getPriorityColor(event.priority)}`}>
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="p-2 bg-white rounded-lg">
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">{event.event}</h4>
+                    <span className="text-xs px-2 py-1 bg-white rounded-full">
+                      {event.priority} priority
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <p><strong>Impact:</strong> {event.impact}</p>
+                  <p><strong>Timeline:</strong> {event.timeline}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-          <button className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Target className="w-6 h-6 text-purple-600" />
+      {/* Action Items */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Recommended Actions</h3>
+        <div className="space-y-4">
+          <div className="flex items-start space-x-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <CheckCircle className="w-5 h-5 text-blue-600 mt-1" />
+            <div className="flex-1">
+              <h4 className="font-medium text-blue-900">Increase Life Insurance Coverage</h4>
+              <p className="text-sm text-blue-700 mt-1">
+                Add {formatCurrency(350000)} to reach recommended coverage of {formatCurrency(650000)}
+              </p>
+              <button className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
+                Get Quote →
+              </button>
             </div>
-            <div>
-              <h3 className="font-medium text-gray-900">Schedule Consultation</h3>
-              <p className="text-sm text-gray-600">Speak with a financial advisor</p>
+          </div>
+          
+          <div className="flex items-start space-x-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <Target className="w-5 h-5 text-yellow-600 mt-1" />
+            <div className="flex-1">
+              <h4 className="font-medium text-yellow-900">Build Emergency Fund</h4>
+              <p className="text-sm text-yellow-700 mt-1">
+                Increase emergency fund from {formatCurrency(currentFinancials.emergencyFund)} to {formatCurrency(currentFinancials.monthlyExpenses * 6)}
+              </p>
+              <button className="mt-2 text-sm text-yellow-600 hover:text-yellow-800 font-medium">
+                Create Savings Plan →
+              </button>
             </div>
-          </button>
+          </div>
+          
+          <div className="flex items-start space-x-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <Calculator className="w-5 h-5 text-green-600 mt-1" />
+            <div className="flex-1">
+              <h4 className="font-medium text-green-900">Review Coverage Annually</h4>
+              <p className="text-sm text-green-700 mt-1">
+                Set up annual reviews to adjust coverage based on life changes and income growth
+              </p>
+              <button className="mt-2 text-sm text-green-600 hover:text-green-800 font-medium">
+                Schedule Review →
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
