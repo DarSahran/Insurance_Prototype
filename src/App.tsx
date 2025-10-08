@@ -26,6 +26,8 @@ import SettingsPage from './pages/dashboard/SettingsPage';
 import HelpCenterPage from './pages/dashboard/HelpCenterPage';
 import { useAuth } from './hooks/useAuth';
 import ClaimDetailsPage from './pages/dashboard/ClaimDetailsPage';
+import TerminologyGlossaryPage from './pages/dashboard/TerminologyGlossaryPage';
+import ProviderNetworkPage from './pages/dashboard/ProviderNetworkPage';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -268,6 +270,8 @@ function App() {
             <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="help" element={<HelpCenterPage />} />
+            <Route path="glossary" element={<TerminologyGlossaryPage />} />
+            <Route path="providers" element={<ProviderNetworkPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

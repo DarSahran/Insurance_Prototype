@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
-import { 
-  Home, User, Shield, FileText, Brain, TrendingUp, Heart, 
-  DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle, 
-  Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown
+import {
+  Home, User, Shield, FileText, Brain, TrendingUp, Heart,
+  DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle,
+  Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown, BookOpen
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -32,6 +32,8 @@ const DashboardLayout: React.FC = () => {
     { name: 'Claims', href: '/dashboard/claims', icon: FileCheck },
     { name: 'Payments', href: '/dashboard/payments', icon: CreditCard },
     { name: 'Messages', href: '/dashboard/messages', icon: MessageCircle },
+    { name: 'Provider Network', href: '/dashboard/providers', icon: Users },
+    { name: 'Terminology Glossary', href: '/dashboard/glossary', icon: BookOpen },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     { name: 'Help Center', href: '/dashboard/help', icon: HelpCircle },
   ];
