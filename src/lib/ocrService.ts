@@ -40,25 +40,47 @@ export interface IdentificationDocumentData {
 
 export class OCRService {
   static async processDocument(file: File, documentType: string, userId: string): Promise<{ documentId: string; result: OCRResult } | null> {
-    const { data: docRecord, error: docError } = await supabase
-      .from('ocr_documents')
-      .insert({
-        user_id: userId,
-        document_type: documentType,
-        file_name: file.name,
-        file_size: file.size,
-        mime_type: file.type,
-        processing_status: 'processing'
-      })
-      .select()
-      .single();
-
-    if (docError || !docRecord) {
-      console.error('Error creating document record:', docError);
-      return null;
-    }
-
     try {
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${userId}/${timestamp}_${sanitizedFileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('medical_records')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Error uploading file to storage:', uploadError);
+        return null;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('medical_records')
+        .getPublicUrl(filePath);
+
+      const { data: docRecord, error: docError } = await supabase
+        .from('ocr_documents')
+        .insert({
+          user_id: userId,
+          document_type: documentType,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          mime_type: file.type,
+          processing_status: 'processing'
+        })
+        .select()
+        .single();
+
+      if (docError || !docRecord) {
+        console.error('Error creating document record:', docError);
+        await supabase.storage.from('medical_records').remove([filePath]);
+        return null;
+      }
+
       const base64Image = await this.fileToBase64(file);
       const ocrResult = await this.performOCR(base64Image);
 
@@ -92,7 +114,6 @@ export class OCRService {
       };
     } catch (error) {
       console.error('OCR processing error:', error);
-      await this.updateDocumentStatus(docRecord.id, 'failed', error.message);
       return null;
     }
   }
@@ -302,6 +323,18 @@ export class OCRService {
   }
 
   static async deleteDocument(documentId: string, userId: string): Promise<boolean> {
+    const document = await this.getDocument(documentId);
+
+    if (!document || document.user_id !== userId) {
+      return false;
+    }
+
+    if (document.file_path) {
+      await supabase.storage
+        .from('medical_records')
+        .remove([document.file_path]);
+    }
+
     const { error } = await supabase
       .from('ocr_documents')
       .delete()
@@ -309,5 +342,26 @@ export class OCRService {
       .eq('user_id', userId);
 
     return !error;
+  }
+
+  static async getDocumentUrl(filePath: string): Promise<string | null> {
+    const { data } = supabase.storage
+      .from('medical_records')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl || null;
+  }
+
+  static async downloadDocument(filePath: string): Promise<Blob | null> {
+    const { data, error } = await supabase.storage
+      .from('medical_records')
+      .download(filePath);
+
+    if (error) {
+      console.error('Error downloading document:', error);
+      return null;
+    }
+
+    return data;
   }
 }

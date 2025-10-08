@@ -88,6 +88,25 @@ export class UserDataService {
       return null;
     }
 
+    if (!data) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error('Error fetching user from auth:', authError);
+        return null;
+      }
+
+      const newProfile = await this.createOrUpdateProfile(userId, user.email || '', {
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || null,
+        first_name: user.user_metadata?.first_name || user.user_metadata?.name || null,
+        last_name: user.user_metadata?.last_name || null,
+        phone: user.phone || null
+      });
+
+      return newProfile;
+    }
+
     return data;
   }
 
