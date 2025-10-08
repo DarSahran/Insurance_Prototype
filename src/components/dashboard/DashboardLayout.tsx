@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import {
   Home, User, Shield, FileText, Brain, TrendingUp, Heart,
   DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle,
-  Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown, BookOpen
+  Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown, BookOpen, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -38,6 +38,7 @@ const DashboardLayout: React.FC = () => {
     { name: 'Policies', href: '/dashboard/policies', icon: Shield },
     { name: 'Assessments', href: '/dashboard/assessments', icon: FileText },
     { name: 'AI Insights', href: '/dashboard/ai-insights', icon: Brain },
+    { name: 'AI Recommendations', href: '/dashboard/ai-recommendations', icon: Sparkles },
     { name: 'Risk Monitoring', href: '/dashboard/risk', icon: TrendingUp },
     { name: 'Health Tracking', href: '/dashboard/health', icon: Heart },
     { name: 'Financial Planning', href: '/dashboard/financial', icon: DollarSign },
