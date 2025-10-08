@@ -111,7 +111,11 @@ export class UserDataService {
   }
 
   static async createOrUpdateProfile(userId: string, email: string, profileData: Partial<UserProfile>): Promise<UserProfile | null> {
-    const existingProfile = await this.getUserProfile(userId);
+    const { data: existingProfile } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
 
     if (existingProfile) {
       const { data, error } = await supabase
