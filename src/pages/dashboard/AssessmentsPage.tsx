@@ -1,389 +1,252 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  FileText, Plus, Search, Filter, Calendar, TrendingUp, 
-  Eye, Download, BarChart3, Clock, CheckCircle, AlertTriangle,
-  Brain, Target, DollarSign
+import {
+  FileText, Plus, Eye, Clock, CheckCircle, Brain,
+  Target, DollarSign, Loader, TrendingUp
 } from 'lucide-react';
+import { useUserData } from '../../hooks/useUserData';
+import { format } from 'date-fns';
 
 const AssessmentsPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('date_desc');
-
-  const assessments = [
-    {
-      id: 'ASS-2024-001',
-      type: 'Comprehensive Life Insurance',
-      status: 'Completed',
-      statusColor: 'green',
-      dateCompleted: '2024-09-15',
-      timeTaken: '7 minutes 23 seconds',
-      riskScore: 28,
-      riskCategory: 'Low Risk',
-      premiumEstimate: 89.99,
-      coverageAmount: 500000,
-      confidence: 94.2,
-      aiModel: 'XGBoost Ensemble v2.1',
-      improvements: [
-        'Risk score improved by 12 points',
-        'Premium reduced by 15% from previous assessment'
-      ]
-    },
-    {
-      id: 'ASS-2024-002',
-      type: 'Health Insurance Assessment',
-      status: 'Completed',
-      statusColor: 'green',
-      dateCompleted: '2024-08-22',
-      timeTaken: '5 minutes 45 seconds',
-      riskScore: 35,
-      riskCategory: 'Low Risk',
-      premiumEstimate: 456.78,
-      coverageAmount: null,
-      confidence: 91.8,
-      aiModel: 'Random Forest v1.8',
-      improvements: [
-        'Health metrics improved significantly',
-        'Lifestyle factors show positive trends'
-      ]
-    },
-    {
-      id: 'ASS-2024-003',
-      type: 'Disability Insurance',
-      status: 'In Progress',
-      statusColor: 'yellow',
-      dateCompleted: null,
-      timeTaken: null,
-      riskScore: null,
-      riskCategory: null,
-      premiumEstimate: null,
-      coverageAmount: 60000,
-      confidence: null,
-      aiModel: null,
-      improvements: []
-    },
-    {
-      id: 'ASS-2024-004',
-      type: 'Life Insurance Reassessment',
-      status: 'Completed',
-      statusColor: 'green',
-      dateCompleted: '2024-07-10',
-      timeTaken: '6 minutes 12 seconds',
-      riskScore: 40,
-      riskCategory: 'Medium Risk',
-      premiumEstimate: 125.50,
-      coverageAmount: 500000,
-      confidence: 89.5,
-      aiModel: 'Neural Network v3.0',
-      improvements: [
-        'Age factor impact increased',
-        'Overall health profile stable'
-      ]
-    }
-  ];
-
-  const getStatusBadge = (status: string, color: string) => {
-    const colors = {
-      green: 'bg-green-100 text-green-800',
-      yellow: 'bg-yellow-100 text-yellow-800',
-      red: 'bg-red-100 text-red-800'
-    };
-
-    const icons = {
-      'Completed': CheckCircle,
-      'In Progress': Clock,
-      'Failed': AlertTriangle
-    };
-
-    const Icon = icons[status as keyof typeof icons] || FileText;
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[color as keyof typeof colors]}`}>
-        <Icon className="w-3 h-3 mr-1" />
-        {status}
-      </span>
-    );
-  };
-
-  const getRiskBadge = (category: string) => {
-    const colors = {
-      'Low Risk': 'bg-green-100 text-green-800',
-      'Medium Risk': 'bg-yellow-100 text-yellow-800',
-      'High Risk': 'bg-red-100 text-red-800'
-    };
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[category as keyof typeof colors]}`}>
-        <Target className="w-3 h-3 mr-1" />
-        {category}
-      </span>
-    );
-  };
+  const { questionnaires, loading, firstName } = useUserData();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 2
     }).format(amount);
   };
 
-  const filteredAssessments = assessments.filter(assessment => {
-    const matchesSearch = assessment.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         assessment.id.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = selectedFilter === 'all' || 
-                         (selectedFilter === 'completed' && assessment.status === 'Completed') ||
-                         (selectedFilter === 'in-progress' && assessment.status === 'In Progress');
-    
-    return matchesSearch && matchesFilter;
-  });
+  const getRiskCategory = (score: number) => {
+    if (score < 40) return { label: 'Low Risk', color: 'text-green-600' };
+    if (score < 70) return { label: 'Medium Risk', color: 'text-yellow-600' };
+    return { label: 'High Risk', color: 'text-red-600' };
+  };
 
-  const completedAssessments = assessments.filter(a => a.status === 'Completed');
-  const averageRiskScore = completedAssessments.reduce((sum, a) => sum + (a.riskScore || 0), 0) / completedAssessments.length;
-  const averagePremium = completedAssessments.reduce((sum, a) => sum + (a.premiumEstimate || 0), 0) / completedAssessments.length;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading your assessments...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (questionnaires.length === 0) {
+    return (
+      <div className="p-6 space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Insurance Assessments</h1>
+            <p className="text-gray-600 mt-1">Track your insurance risk assessments</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Assessments Yet</h3>
+          <p className="text-gray-600 mb-6">
+            Start your first insurance assessment to get personalized recommendations and risk analysis.
+          </p>
+          <Link
+            to="/dashboard/assessment/new"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Start Your First Assessment</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const completedAssessments = questionnaires.filter(q => q.status === 'completed');
+  const latestAssessment = completedAssessments[0];
+  const avgRiskScore = completedAssessments.length > 0
+    ? completedAssessments.reduce((sum, q) => sum + (q.risk_score || 0), 0) / completedAssessments.length
+    : 0;
 
   return (
     <div className="p-6 space-y-8">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Risk Assessments</h1>
-          <p className="text-gray-600">Dashboard &gt; Assessments</p>
+          <h1 className="text-3xl font-bold text-gray-900">Insurance Assessments</h1>
+          <p className="text-gray-600 mt-1">Welcome back, {firstName}! Track your assessments</p>
         </div>
         <Link
           to="/dashboard/assessment/new"
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
         >
           <Plus className="w-4 h-4" />
           <span>New Assessment</span>
         </Link>
       </div>
 
-      {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <FileText className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Assessments</p>
-              <p className="text-2xl font-bold text-gray-900">{assessments.length}</p>
-            </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">Total Assessments</p>
+            <FileText className="w-5 h-5 text-blue-600" />
           </div>
+          <p className="text-2xl font-bold text-gray-900">{questionnaires.length}</p>
+          <p className="text-xs text-gray-500 mt-1">{completedAssessments.length} completed</p>
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-green-50 rounded-lg">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">{completedAssessments.length}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-orange-50 rounded-lg">
-              <Target className="w-6 h-6 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Avg Risk Score</p>
-              <p className="text-2xl font-bold text-gray-900">{Math.round(averageRiskScore)}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <DollarSign className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Avg Premium</p>
-              <p className="text-2xl font-bold text-gray-900">${Math.round(averagePremium)}</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          <div className="flex-1 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search assessments by type or ID"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">Latest Risk Score</p>
+            <Target className="w-5 h-5 text-orange-600" />
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <select
-              value={selectedFilter}
-              onChange={(e) => setSelectedFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Assessments</option>
-              <option value="completed">Completed</option>
-              <option value="in-progress">In Progress</option>
-            </select>
-            
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="date_desc">Newest First</option>
-              <option value="date_asc">Oldest First</option>
-              <option value="risk_asc">Risk Score (Low to High)</option>
-              <option value="risk_desc">Risk Score (High to Low)</option>
-            </select>
+          <p className="text-2xl font-bold text-gray-900">
+            {latestAssessment?.risk_score || 'N/A'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {latestAssessment ? getRiskCategory(latestAssessment.risk_score).label : 'Not assessed'}
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">Premium Estimate</p>
+            <DollarSign className="w-5 h-5 text-green-600" />
           </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {latestAssessment?.premium_estimate ? formatCurrency(latestAssessment.premium_estimate) : 'N/A'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">per month</p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">AI Confidence</p>
+            <Brain className="w-5 h-5 text-purple-600" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {latestAssessment?.confidence_score || 'N/A'}%
+          </p>
+          <p className="text-xs text-gray-500 mt-1">accuracy score</p>
         </div>
       </div>
 
-      {/* Assessments List */}
-      <div className="space-y-6">
-        {filteredAssessments.map((assessment) => (
-          <div key={assessment.id} className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <FileText className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{assessment.type}</h3>
-                    <p className="text-sm text-gray-600">Assessment ID: {assessment.id}</p>
-                    {assessment.dateCompleted && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        Completed on {assessment.dateCompleted} • {assessment.timeTaken}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {getStatusBadge(assessment.status, assessment.statusColor)}
-                </div>
-              </div>
+      {completedAssessments.length > 1 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <TrendingUp className="w-6 h-6 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Risk Score Trend</h2>
+          </div>
 
-              {assessment.status === 'Completed' && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center mb-2">
-                      <Target className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <p className="text-sm text-gray-600">Risk Score</p>
-                    <p className="text-xl font-bold text-gray-900">{assessment.riskScore}</p>
-                    {assessment.riskCategory && getRiskBadge(assessment.riskCategory)}
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center mb-2">
-                      <DollarSign className="w-5 h-5 text-green-600" />
-                    </div>
-                    <p className="text-sm text-gray-600">Premium Estimate</p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {assessment.premiumEstimate ? formatCurrency(assessment.premiumEstimate) : 'N/A'}
-                    </p>
-                    <p className="text-xs text-gray-500">per month</p>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center mb-2">
-                      <Brain className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <p className="text-sm text-gray-600">AI Confidence</p>
-                    <p className="text-xl font-bold text-gray-900">{assessment.confidence}%</p>
-                    <p className="text-xs text-gray-500">{assessment.aiModel}</p>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center mb-2">
-                      <BarChart3 className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <p className="text-sm text-gray-600">Coverage</p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {assessment.coverageAmount ? formatCurrency(assessment.coverageAmount) : 'Comprehensive'}
-                    </p>
-                  </div>
-                </div>
-              )}
+          <div className="flex items-end space-x-2 h-40">
+            {completedAssessments.slice(0, 6).reverse().map((assessment, index) => {
+              const height = (assessment.risk_score / 100) * 100;
+              const color = assessment.risk_score < 40 ? 'bg-green-500' :
+                           assessment.risk_score < 70 ? 'bg-yellow-500' : 'bg-red-500';
 
-              {assessment.improvements.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Key Improvements</h4>
-                  <div className="space-y-1">
-                    {assessment.improvements.map((improvement, index) => (
-                      <div key={index} className="flex items-center space-x-2 text-sm text-green-700">
-                        <TrendingUp className="w-4 h-4" />
-                        <span>{improvement}</span>
-                      </div>
-                    ))}
+              return (
+                <div key={assessment.id} className="flex-1 flex flex-col items-center">
+                  <div className="w-full flex items-end justify-center" style={{ height: '140px' }}>
+                    <div
+                      className={`w-full ${color} rounded-t-lg transition-all hover:opacity-80`}
+                      style={{ height: `${height}%` }}
+                      title={`${assessment.risk_score}`}
+                    />
                   </div>
+                  <p className="text-xs text-gray-600 mt-2">{assessment.risk_score}</p>
                 </div>
-              )}
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <div className="flex space-x-4">
-                  {assessment.status === 'Completed' && (
-                    <>
-                      <Link
-                        to={`/dashboard/assessments/${assessment.id}`}
-                        className="flex items-center space-x-2 text-blue-600 hover:text-blue-800"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>View Details</span>
-                      </Link>
-                      <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
-                        <Download className="w-4 h-4" />
-                        <span>Download Report</span>
-                      </button>
-                    </>
-                  )}
-                  {assessment.status === 'In Progress' && (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Assessments</h2>
+
+        <div className="space-y-4">
+          {questionnaires.map((assessment) => {
+            const riskCategory = assessment.risk_score ? getRiskCategory(assessment.risk_score) : null;
+
+            return (
+              <div key={assessment.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Insurance Risk Assessment #{questionnaires.indexOf(assessment) + 1}
+                      </h3>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        assessment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        assessment.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {assessment.status === 'completed' ? <CheckCircle className="w-3 h-3 mr-1" /> : <Clock className="w-3 h-3 mr-1" />}
+                        {assessment.status}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center space-x-6 text-sm text-gray-600">
+                      <span>Completed: {format(new Date(assessment.created_at), 'MMM d, yyyy')}</span>
+                      {assessment.processing_time_seconds && (
+                        <span>Duration: {Math.floor(assessment.processing_time_seconds / 60)}m {assessment.processing_time_seconds % 60}s</span>
+                      )}
+                      <span>Version: {assessment.version}</span>
+                    </div>
+                  </div>
+
+                  {assessment.status === 'completed' && (
                     <Link
-                      to={`/dashboard/assessment/new?continue=${assessment.id}`}
-                      className="flex items-center space-x-2 text-blue-600 hover:text-blue-800"
+                      to={`/dashboard/assessments/${assessment.id}`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
                     >
-                      <Clock className="w-4 h-4" />
-                      <span>Continue Assessment</span>
+                      <Eye className="w-4 h-4" />
+                      <span>View Details</span>
                     </Link>
                   )}
                 </div>
-                <div className="text-sm text-gray-500">
-                  {assessment.dateCompleted ? `Completed ${assessment.dateCompleted}` : 'In progress'}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
-      {filteredAssessments.length === 0 && (
-        <div className="text-center py-12">
-          <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No assessments found</h3>
-          <p className="text-gray-600 mb-6">
-            {searchTerm || selectedFilter !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Get started by creating your first risk assessment'
-            }
-          </p>
-          <Link
-            to="/dashboard/assessment/new"
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Start New Assessment</span>
-          </Link>
+                {assessment.status === 'completed' && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Risk Score</p>
+                      <p className={`text-2xl font-bold ${riskCategory?.color}`}>
+                        {assessment.risk_score}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{riskCategory?.label}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Premium Estimate</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {formatCurrency(assessment.premium_estimate || 0)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">per month</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">AI Confidence</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {assessment.confidence_score || 0}%
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">accuracy</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Completion</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {assessment.completion_percentage}%
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">of data provided</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
     </div>
   );
 };
