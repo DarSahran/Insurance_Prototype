@@ -13,7 +13,6 @@ const DashboardLayout: React.FC = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
 
-  // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -43,19 +42,22 @@ const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      {/* Sidebar - Fixed on desktop, slide-in on mobile */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Sidebar header */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-2">
             <div className="relative">
@@ -75,27 +77,31 @@ const DashboardLayout: React.FC = () => {
           </button>
         </div>
 
-        <nav className="mt-6 px-3">
+        {/* Navigation links */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3" style={{ height: 'calc(100vh - 128px)' }}>
           <div className="space-y-1">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href || 
+              const isActive =
+                location.pathname === item.href ||
                 (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
-              
+
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                      ? 'bg-blue-50 text-blue-700 shadow-sm'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon className={`mr-3 h-5 w-5 ${
-                    isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
-                  }`} />
-                  {item.name}
+                  <item.icon
+                    className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                      isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-600'
+                    }`}
+                  />
+                  <span className="truncate">{item.name}</span>
                 </Link>
               );
             })}
@@ -103,93 +109,101 @@ const DashboardLayout: React.FC = () => {
         </nav>
 
         {/* User info at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-sm font-semibold">
                 {user.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user.user_metadata?.full_name || user.email}
+                {user.user_metadata?.full_name || user.email?.split('@')[0]}
               </p>
               <p className="text-xs text-gray-500 truncate">{user.email}</p>
             </div>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top navigation */}
-        <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col lg:ml-64">
+        {/* Top navigation bar */}
+        <header className="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-4">
+            {/* Left side - Menu button and search */}
+            <div className="flex items-center space-x-4 flex-1">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600"
+                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-6 h-6" />
               </button>
-              
-              <div className="hidden sm:block">
+
+              <div className="hidden sm:block flex-1 max-w-lg">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                    placeholder="Search dashboard..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            {/* Right side - Notifications and profile */}
+            <div className="flex items-center space-x-3">
               {/* Notifications */}
-              <button className="relative p-2 text-gray-400 hover:text-gray-600">
+              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
 
               {/* Profile dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50"
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold">
                       {user.email?.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                  <ChevronDown className="w-4 h-4 text-gray-400 hidden sm:block" />
                 </button>
 
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
                     <Link
                       to="/dashboard/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       onClick={() => setProfileDropdownOpen(false)}
                     >
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
+                      <User className="w-4 h-4 mr-3 text-gray-400" />
+                      Your Profile
                     </Link>
                     <Link
                       to="/dashboard/settings"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       onClick={() => setProfileDropdownOpen(false)}
                     >
-                      <Settings className="w-4 h-4 mr-2" />
+                      <Settings className="w-4 h-4 mr-3 text-gray-400" />
                       Settings
                     </Link>
-                    <hr className="my-1" />
+                    <hr className="my-1 border-gray-100" />
                     <button
                       onClick={handleSignOut}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      <LogOut className="w-4 h-4 mr-2" />
+                      <LogOut className="w-4 h-4 mr-3" />
                       Sign Out
                     </button>
                   </div>
@@ -197,10 +211,10 @@ const DashboardLayout: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Page content */}
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <Outlet />
         </main>
       </div>
