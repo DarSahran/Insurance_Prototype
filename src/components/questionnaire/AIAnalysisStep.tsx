@@ -71,10 +71,83 @@ const AIAnalysisStep: React.FC<AIAnalysisStepProps> = ({ processing, data }) => 
 
   if (!processing) {
     return (
-      <div className="text-center py-12">
-        <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Analysis Complete!</h3>
-        <p className="text-gray-600">Your personalized insurance quote is ready.</p>
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
+            <CheckCircle className="w-12 h-12 text-green-600" />
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-2">Analysis Complete!</h3>
+          <p className="text-lg text-gray-600 mb-6">
+            Your personalized insurance assessment is ready to view in your dashboard.
+          </p>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border-2 border-blue-200">
+            <div className="flex items-center gap-3 mb-2">
+              <Shield className="w-6 h-6 text-blue-600" />
+              <h4 className="font-semibold text-blue-900">Risk Assessment</h4>
+            </div>
+            <p className="text-3xl font-bold text-blue-700">
+              {data.riskScore || 'N/A'}
+              <span className="text-lg font-normal text-blue-600">/100</span>
+            </p>
+            <p className="text-sm text-blue-600 mt-1">
+              {data.riskScore < 40 ? 'Low Risk' : data.riskScore < 70 ? 'Medium Risk' : 'High Risk'}
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border-2 border-green-200">
+            <div className="flex items-center gap-3 mb-2">
+              <Target className="w-6 h-6 text-green-600" />
+              <h4 className="font-semibold text-green-900">Estimated Premium</h4>
+            </div>
+            <p className="text-3xl font-bold text-green-700">
+              ${data.premiumEstimate || 0}
+              <span className="text-lg font-normal text-green-600">/mo</span>
+            </p>
+            <p className="text-sm text-green-600 mt-1">Based on your profile</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border-2 border-purple-200">
+            <div className="flex items-center gap-3 mb-2">
+              <Brain className="w-6 h-6 text-purple-600" />
+              <h4 className="font-semibold text-purple-900">Confidence Score</h4>
+            </div>
+            <p className="text-3xl font-bold text-purple-700">
+              {data.aiAnalysis?.confidence || 95}
+              <span className="text-lg font-normal text-purple-600">%</span>
+            </p>
+            <p className="text-sm text-purple-600 mt-1">Model accuracy</p>
+          </div>
+        </div>
+
+        {/* Next Steps Info */}
+        <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-blue-600" />
+            What's Next?
+          </h4>
+          <ul className="space-y-2 text-gray-700">
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <span>Click "View Dashboard" below to see your complete results</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <span>Review your personalized risk factors and recommendations</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <span>Explore policy options tailored to your needs</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <span>Track your health metrics for potential premium discounts</span>
+            </li>
+          </ul>
+        </div>
       </div>
     );
   }

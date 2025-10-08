@@ -142,12 +142,11 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
       // Simulate AI processing and save final data
       setTimeout(async () => {
         console.log('AI Processing completed, starting data save...');
-        setFormData(prev => ({ ...prev, processing: false }));
-        
+
         // Calculate risk score and premium estimate
         const riskScore = calculateRiskScore(formData);
         const premiumEstimate = calculatePremiumEstimate(formData, riskScore);
-        
+
         // Create AI analysis object
         const aiAnalysis = {
           riskScore,
@@ -162,10 +161,14 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
 
         const finalData = {
           ...formData,
+          processing: false,
           aiAnalysis,
           riskScore,
           premiumEstimate
         };
+
+        // Update formData with results so the View Dashboard button can access them
+        setFormData(finalData);
 
         // Save final questionnaire data to Supabase
         if (user) {
@@ -199,12 +202,7 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
             }
 
             console.log('Questionnaire saved successfully:', saveResult.data);
-            
-            // Wait a moment for the save to complete, then call onComplete
-            setTimeout(() => {
-              setIsSaving(false);
-              onComplete(finalData);
-            }, 1000);
+            setIsSaving(false);
 
           } catch (error) {
             console.error('Error saving questionnaire:', error);
@@ -213,11 +211,8 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
             return;
           }
         } else {
-          // If no user, still call onComplete but show warning
+          // If no user, questionnaire data not saved - just stop processing
           console.warn('No authenticated user - questionnaire data not saved');
-          setTimeout(() => {
-            onComplete(finalData);
-          }, 1000);
         }
       }, 3000); // Reduced from 8000ms to 3000ms
     }
@@ -481,6 +476,37 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
               >
                 <span>{currentStep === 4 ? 'Generate Quote' : 'Next'}</span>
                 <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
+          )}
+
+          {/* Show completion button when AI analysis is done */}
+          {currentStep === 5 && !formData.processing && (
+            <div className="flex justify-center mt-12 pt-8 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  const finalData = {
+                    ...formData,
+                    aiAnalysis: formData.aiAnalysis || {},
+                    riskScore: formData.riskScore || 0,
+                    premiumEstimate: formData.premiumEstimate || 0
+                  };
+                  onComplete(finalData);
+                }}
+                disabled={isSaving}
+                className="group flex items-center space-x-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-12 py-5 rounded-xl font-bold text-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Saving Results...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>View Dashboard</span>
+                    <ChevronRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
               </button>
             </div>
           )}
