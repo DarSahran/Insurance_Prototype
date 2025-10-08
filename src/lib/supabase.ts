@@ -436,6 +436,341 @@ export type Database = {
           updated_at?: string
         }
       }
+      user_locations: {
+        Row: {
+          id: string
+          user_id: string
+          latitude: number
+          longitude: number
+          city: string | null
+          state: string | null
+          country: string | null
+          postal_code: string | null
+          address_formatted: string | null
+          location_type: string
+          accuracy_meters: number | null
+          is_primary: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          latitude: number
+          longitude: number
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          postal_code?: string | null
+          address_formatted?: string | null
+          location_type?: string
+          accuracy_meters?: number | null
+          is_primary?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          latitude?: number
+          longitude?: number
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          postal_code?: string | null
+          address_formatted?: string | null
+          location_type?: string
+          accuracy_meters?: number | null
+          is_primary?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      weather_data: {
+        Row: {
+          id: string
+          location_id: string
+          user_id: string
+          temperature: number | null
+          humidity: number | null
+          weather_condition: string | null
+          wind_speed: number | null
+          precipitation: number | null
+          severe_weather_alerts: any
+          air_quality_index: number | null
+          uv_index: number | null
+          recorded_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          location_id: string
+          user_id: string
+          temperature?: number | null
+          humidity?: number | null
+          weather_condition?: string | null
+          wind_speed?: number | null
+          precipitation?: number | null
+          severe_weather_alerts?: any
+          air_quality_index?: number | null
+          uv_index?: number | null
+          recorded_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          location_id?: string
+          user_id?: string
+          temperature?: number | null
+          humidity?: number | null
+          weather_condition?: string | null
+          wind_speed?: number | null
+          precipitation?: number | null
+          severe_weather_alerts?: any
+          air_quality_index?: number | null
+          uv_index?: number | null
+          recorded_at?: string
+          created_at?: string
+        }
+      }
+      regional_insurance_rates: {
+        Row: {
+          id: string
+          region_type: string
+          region_name: string
+          region_code: string | null
+          policy_type: string
+          base_rate_multiplier: number
+          risk_factors: any
+          crime_rate_index: number | null
+          natural_disaster_risk: number | null
+          healthcare_access_score: number | null
+          cost_of_living_index: number | null
+          updated_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          region_type: string
+          region_name: string
+          region_code?: string | null
+          policy_type: string
+          base_rate_multiplier?: number
+          risk_factors?: any
+          crime_rate_index?: number | null
+          natural_disaster_risk?: number | null
+          healthcare_access_score?: number | null
+          cost_of_living_index?: number | null
+          updated_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          region_type?: string
+          region_name?: string
+          region_code?: string | null
+          policy_type?: string
+          base_rate_multiplier?: number
+          risk_factors?: any
+          crime_rate_index?: number | null
+          natural_disaster_risk?: number | null
+          healthcare_access_score?: number | null
+          cost_of_living_index?: number | null
+          updated_at?: string
+          created_at?: string
+        }
+      }
+      ocr_documents: {
+        Row: {
+          id: string
+          user_id: string
+          document_type: string
+          file_name: string
+          file_path: string | null
+          file_size: number | null
+          mime_type: string | null
+          ocr_text: string | null
+          ocr_confidence: number | null
+          structured_data: any
+          processing_status: string
+          error_message: string | null
+          google_vision_response: any | null
+          manual_verification_required: boolean
+          verified_at: string | null
+          verified_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          document_type: string
+          file_name: string
+          file_path?: string | null
+          file_size?: number | null
+          mime_type?: string | null
+          ocr_text?: string | null
+          ocr_confidence?: number | null
+          structured_data?: any
+          processing_status?: string
+          error_message?: string | null
+          google_vision_response?: any | null
+          manual_verification_required?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          document_type?: string
+          file_name?: string
+          file_path?: string | null
+          file_size?: number | null
+          mime_type?: string | null
+          ocr_text?: string | null
+          ocr_confidence?: number | null
+          structured_data?: any
+          processing_status?: string
+          error_message?: string | null
+          google_vision_response?: any | null
+          manual_verification_required?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      insurance_recommendations_cache: {
+        Row: {
+          id: string
+          provider_name: string
+          provider_rating: number | null
+          policy_type: string
+          coverage_amount: number
+          monthly_premium: number
+          annual_premium: number | null
+          policy_features: any
+          eligibility_criteria: any
+          region_restrictions: string[]
+          source_url: string | null
+          scrape_timestamp: string
+          data_freshness_hours: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider_name: string
+          provider_rating?: number | null
+          policy_type: string
+          coverage_amount: number
+          monthly_premium: number
+          annual_premium?: number | null
+          policy_features?: any
+          eligibility_criteria?: any
+          region_restrictions?: string[]
+          source_url?: string | null
+          scrape_timestamp?: string
+          data_freshness_hours?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider_name?: string
+          provider_rating?: number | null
+          policy_type?: string
+          coverage_amount?: number
+          monthly_premium?: number
+          annual_premium?: number | null
+          policy_features?: any
+          eligibility_criteria?: any
+          region_restrictions?: string[]
+          source_url?: string | null
+          scrape_timestamp?: string
+          data_freshness_hours?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      weather_history: {
+        Row: {
+          id: string
+          location_id: string
+          year: number
+          month: number
+          avg_temperature: number | null
+          total_precipitation: number | null
+          severe_events_count: number
+          severe_events: any
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          location_id: string
+          year: number
+          month: number
+          avg_temperature?: number | null
+          total_precipitation?: number | null
+          severe_events_count?: number
+          severe_events?: any
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          location_id?: string
+          year?: number
+          month?: number
+          avg_temperature?: number | null
+          total_precipitation?: number | null
+          severe_events_count?: number
+          severe_events?: any
+          created_at?: string
+        }
+      }
+      geolocation_cache: {
+        Row: {
+          id: string
+          latitude: number
+          longitude: number
+          address_components: any | null
+          formatted_address: string | null
+          place_id: string | null
+          api_response: any | null
+          cache_hits: number
+          expires_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          latitude: number
+          longitude: number
+          address_components?: any | null
+          formatted_address?: string | null
+          place_id?: string | null
+          api_response?: any | null
+          cache_hits?: number
+          expires_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          latitude?: number
+          longitude?: number
+          address_components?: any | null
+          formatted_address?: string | null
+          place_id?: string | null
+          api_response?: any | null
+          cache_hits?: number
+          expires_at?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       kpi_dashboard: {
