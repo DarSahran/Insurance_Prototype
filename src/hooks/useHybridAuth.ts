@@ -18,13 +18,17 @@ export const useHybridAuth = () => {
 
   useEffect(() => {
     const setupUserProfile = async (user: User, provider: 'clerk' | 'supabase') => {
-      const result = await ensureUserProfile(user, provider);
-      if (!result.success) {
-        console.error(`Failed to ensure user profile for ${provider} user:`, result.error);
-      } else if (result.created) {
-        console.log(`New user profile created for ${provider} user`);
-      } else if (result.updated) {
-        console.log(`User profile updated for ${provider} user`);
+      try {
+        const result = await ensureUserProfile(user, provider);
+        if (!result.success) {
+          console.error(`Failed to ensure user profile for ${provider} user:`, result.error);
+        } else if (result.created) {
+          console.log(`New user profile created for ${provider} user`);
+        } else if (result.updated) {
+          console.log(`User profile updated for ${provider} user`);
+        }
+      } catch (error) {
+        console.error(`Error setting up user profile for ${provider} user:`, error);
       }
     };
 
@@ -47,22 +51,24 @@ export const useHybridAuth = () => {
           },
           app_metadata: {},
         } as User;
-        
+
         setCurrentUser(convertedUser);
-        // Ensure user profile exists in database
+        setLoading(false); // Set loading false BEFORE profile sync
+        // Ensure user profile exists in database (async, don't block)
         setupUserProfile(convertedUser, 'clerk');
-        
+
       } else if (supabaseUser) {
         setAuthProvider('supabase')
         setCurrentUser(supabaseUser)
-        // Ensure user profile exists in database
+        setLoading(false); // Set loading false BEFORE profile sync
+        // Ensure user profile exists in database (async, don't block)
         setupUserProfile(supabaseUser, 'supabase');
-        
+
       } else {
         setAuthProvider(null)
         setCurrentUser(null)
+        setLoading(false)
       }
-      setLoading(false)
     }
   }, [clerkUser, clerkLoaded, supabaseUser, supabaseLoading])
 

@@ -20,9 +20,18 @@ export interface UserProfileSyncData {
  */
 export const ensureUserProfile = async (user: User, provider: 'clerk' | 'supabase') => {
   try {
-    // Check if user profile exists
-    const { data: existingProfile, error: fetchError } = await getUserProfile(user.id);
-    
+    // Add a timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database operation timeout')), 5000)
+    );
+
+    // Check if user profile exists with timeout
+    const profilePromise = getUserProfile(user.id);
+    const { data: existingProfile, error: fetchError } = await Promise.race([
+      profilePromise,
+      timeoutPromise
+    ]) as any;
+
     if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
       console.error(`Error fetching user profile for ${provider} user:`, fetchError);
       return { success: false, error: fetchError };
