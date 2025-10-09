@@ -38,7 +38,6 @@ const DashboardLayout: React.FC = () => {
     { name: 'Profile', href: '/dashboard/profile', icon: User },
     { name: 'Policies', href: '/dashboard/policies', icon: Shield },
     { name: 'Assessments', href: '/dashboard/assessments', icon: FileText },
-    { name: 'AI Insights', href: '/dashboard/ai-insights', icon: Brain },
     { name: 'AI Recommendations', href: '/dashboard/ai-recommendations', icon: Sparkles },
     { name: 'Risk Monitoring', href: '/dashboard/risk', icon: TrendingUp },
     { name: 'Health Tracking', href: '/dashboard/health', icon: Heart },
@@ -47,10 +46,8 @@ const DashboardLayout: React.FC = () => {
     { name: 'Documents', href: '/dashboard/documents', icon: Upload },
     { name: 'Claims', href: '/dashboard/claims', icon: FileCheck },
     { name: 'Payments', href: '/dashboard/payments', icon: CreditCard },
-    { name: 'Messages', href: '/dashboard/messages', icon: MessageCircle },
     { name: 'Provider Network', href: '/dashboard/providers', icon: Users },
     { name: 'Terminology Glossary', href: '/dashboard/glossary', icon: BookOpen },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     { name: 'Help Center', href: '/dashboard/help', icon: HelpCircle },
   ];
 
@@ -203,14 +200,6 @@ const DashboardLayout: React.FC = () => {
                     >
                       <User className="w-4 h-4 mr-3 text-gray-400" />
                       Your Profile
-                    </Link>
-                    <Link
-                      to="/dashboard/settings"
-                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setProfileDropdownOpen(false)}
-                    >
-                      <Settings className="w-4 h-4 mr-3 text-gray-400" />
-                      Settings
                     </Link>
                     <hr className="my-1 border-gray-100" />
                     <button

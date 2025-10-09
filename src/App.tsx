@@ -13,7 +13,6 @@ import PolicyDetailsPage from './pages/dashboard/PolicyDetailsPage';
 import AssessmentsPage from './pages/dashboard/AssessmentsPage';
 import AssessmentDetailsPage from './pages/dashboard/AssessmentDetailsPage';
 import NewAssessmentPage from './pages/dashboard/NewAssessmentPage';
-import AIInsightsPage from './pages/dashboard/AIInsightsPage';
 import AIInsuranceRecommendationsPage from './pages/dashboard/AIInsuranceRecommendationsPage';
 import RiskDashboardPage from './pages/dashboard/RiskDashboardPage';
 import HealthTrackingPage from './pages/dashboard/HealthTrackingPage';
@@ -22,8 +21,6 @@ import FamilyManagementPage from './pages/dashboard/FamilyManagementPage';
 import DocumentCenterPage from './pages/dashboard/DocumentCenterPage';
 import ClaimsPage from './pages/dashboard/ClaimsPage';
 import PaymentsPage from './pages/dashboard/PaymentsPage';
-import MessagesPage from './pages/dashboard/MessagesPage';
-import SettingsPage from './pages/dashboard/SettingsPage';
 import HelpCenterPage from './pages/dashboard/HelpCenterPage';
 import { useAuth } from './hooks/useAuth';
 import ClaimDetailsPage from './pages/dashboard/ClaimDetailsPage';
@@ -259,7 +256,6 @@ function App() {
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:id" element={<AssessmentDetailsPage />} />
             <Route path="assessment/new" element={<NewAssessmentPage />} />
-            <Route path="ai-insights" element={<AIInsightsPage />} />
             <Route path="ai-recommendations" element={<AIInsuranceRecommendationsPage />} />
             <Route path="risk" element={<RiskDashboardPage />} />
             <Route path="health" element={<HealthTrackingPage />} />
@@ -269,8 +265,6 @@ function App() {
             <Route path="claims" element={<ClaimsPage />} />
             <Route path="claims/:id" element={<ClaimDetailsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
-            <Route path="messages" element={<MessagesPage />} />
-            <Route path="settings" element={<SettingsPage />} />
             <Route path="help" element={<HelpCenterPage />} />
             <Route path="glossary" element={<TerminologyGlossaryPage />} />
             <Route path="providers" element={<ProviderNetworkPage />} />
