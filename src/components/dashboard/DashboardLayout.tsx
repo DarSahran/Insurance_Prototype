@@ -3,9 +3,10 @@ import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import {
   Home, User, Shield, FileText, Brain, TrendingUp, Heart,
   DollarSign, Users, Upload, FileCheck, CreditCard, MessageCircle,
-  Settings, HelpCircle, Menu, X, Bell, Search, LogOut, ChevronDown, BookOpen, Sparkles
+  Settings, HelpCircle, Menu, X, Search, LogOut, ChevronDown, BookOpen, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { NotificationCenter } from './NotificationCenter';
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -171,10 +172,7 @@ const DashboardLayout: React.FC = () => {
             {/* Right side - Notifications and profile */}
             <div className="flex items-center space-x-3">
               {/* Notifications */}
-              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+              <NotificationCenter />
 
               {/* Profile dropdown */}
               <div className="relative">
