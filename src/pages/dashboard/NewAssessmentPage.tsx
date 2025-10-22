@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Heart, TrendingUp, Car, Bike, Users, Plane, PiggyBank, Home } from 'lucide-react';
+import { Shield, Heart, TrendingUp, Car, Bike, Users, Plane, PiggyBank, Home, ArrowLeft } from 'lucide-react';
+import QuestionnaireWizard from '../../components/QuestionnaireWizard';
 
 const INSURANCE_TYPES = [
   { id: 'term_life', name: 'Term Life Insurance', icon: Shield, color: 'blue', description: 'Secure your family\'s future with comprehensive life coverage' },
@@ -17,10 +18,40 @@ const INSURANCE_TYPES = [
 
 const NewAssessmentPage: React.FC = () => {
   const navigate = useNavigate();
+  const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const handleSelectType = (typeId: string) => {
-    navigate(`/assessment/${typeId}`);
+    setSelectedType(typeId);
   };
+
+  const handleBack = () => {
+    if (selectedType) {
+      setSelectedType(null);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleComplete = () => {
+    navigate('/dashboard/assessments');
+  };
+
+  if (selectedType) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Insurance Types
+          </button>
+          <QuestionnaireWizard insuranceType={selectedType} onComplete={handleComplete} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

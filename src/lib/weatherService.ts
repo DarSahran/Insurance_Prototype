@@ -97,14 +97,14 @@ export class WeatherService {
       await supabase.from('weather_data').insert({
         location_id: locationId,
         user_id: userId,
-        temperature: weatherData.temperature,
-        humidity: weatherData.humidity,
+        temperature: Number(weatherData.temperature),
+        humidity: Number(weatherData.humidity),
         weather_condition: weatherData.weather_condition,
-        wind_speed: weatherData.wind_speed,
-        precipitation: weatherData.precipitation,
+        wind_speed: Number(weatherData.wind_speed),
+        precipitation: Number(weatherData.precipitation),
         severe_weather_alerts: weatherData.severe_weather_alerts,
-        air_quality_index: weatherData.air_quality_index,
-        uv_index: weatherData.uv_index,
+        air_quality_index: weatherData.air_quality_index ? Number(weatherData.air_quality_index) : null,
+        uv_index: weatherData.uv_index ? Number(weatherData.uv_index) : null,
         recorded_at: new Date().toISOString()
       });
     } catch (error) {

@@ -43,12 +43,12 @@ export const ensureUserProfile = async (user: User, provider: 'clerk' | 'supabas
       email: user.email || '',
       first_name: user.user_metadata?.first_name || '',
       last_name: user.user_metadata?.last_name || '',
-      full_name: user.user_metadata?.full_name || 
-                 (user.user_metadata?.first_name && user.user_metadata?.last_name 
-                   ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}` 
+      full_name: user.user_metadata?.full_name ||
+                 (user.user_metadata?.first_name && user.user_metadata?.last_name
+                   ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
                    : ''),
       phone: user.user_metadata?.phone || '',
-      date_of_birth: user.user_metadata?.date_of_birth || '',
+      date_of_birth: user.user_metadata?.date_of_birth || undefined,
       gender: user.user_metadata?.gender || '',
       occupation: user.user_metadata?.occupation || '',
       location: user.user_metadata?.location || '',
