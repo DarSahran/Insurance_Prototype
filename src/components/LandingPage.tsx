@@ -403,13 +403,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
               
               {/* Enhanced CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <button 
-                  onClick={handleStartAssessment}
+                <button
+                  onClick={() => navigate('/browse-policies')}
                   className="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg font-semibold relative overflow-hidden"
                 >
-                  <span>{user ? 'Continue Assessment' : 'Start Your Assessment'}</span>
+                  <span>Browse Policies</span>
                   <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </button>
+                <button
+                  onClick={handleStartAssessment}
+                  className="group bg-white text-blue-600 border-2 border-blue-600 px-8 py-4 rounded-xl hover:bg-blue-50 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg font-semibold"
+                >
+                  <span>{user ? 'Get AI Assessment' : 'Get AI-Powered Assessment'}</span>
+                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
 

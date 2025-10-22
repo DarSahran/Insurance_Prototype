@@ -26,6 +26,9 @@ import { useAuth } from './hooks/useAuth';
 import ClaimDetailsPage from './pages/dashboard/ClaimDetailsPage';
 import TerminologyGlossaryPage from './pages/dashboard/TerminologyGlossaryPage';
 import ProviderNetworkPage from './pages/dashboard/ProviderNetworkPage';
+import PolicyBrowsePage from './pages/PolicyBrowsePage';
+import PolicyDetailsPagePublic from './pages/PolicyDetailsPage';
+import QuickBuyPage from './pages/QuickBuyPage';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -245,9 +248,16 @@ function App() {
               <LandingPageWrapper />
             </div>
           } />
-        <Route path="/login" element={<LoginWrapper />} />
-        <Route path="/signup" element={<SignupWrapper />} />
-        <Route path="/questionnaire" element={<QuestionnaireWrapper />} />          {/* Dashboard Routes */}
+          <Route path="/login" element={<LoginWrapper />} />
+          <Route path="/signup" element={<SignupWrapper />} />
+          <Route path="/questionnaire" element={<QuestionnaireWrapper />} />
+
+          {/* Public Policy Marketplace Routes */}
+          <Route path="/browse-policies" element={<PolicyBrowsePage />} />
+          <Route path="/policy/:policyId" element={<PolicyDetailsPagePublic />} />
+          <Route path="/policy/:policyId/buy" element={<QuickBuyPage />} />
+
+          {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="profile" element={<ProfilePage />} />
