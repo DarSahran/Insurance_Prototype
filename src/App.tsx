@@ -29,6 +29,8 @@ import ProviderNetworkPage from './pages/dashboard/ProviderNetworkPage';
 import PolicyBrowsePage from './pages/PolicyBrowsePage';
 import PolicyDetailsPagePublic from './pages/PolicyDetailsPage';
 import QuickBuyPage from './pages/QuickBuyPage';
+import CheckoutPage from './pages/CheckoutPage';
+import PurchaseSuccessPage from './pages/PurchaseSuccessPage';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -256,6 +258,8 @@ function App() {
           <Route path="/browse-policies" element={<PolicyBrowsePage />} />
           <Route path="/policy/:policyId" element={<PolicyDetailsPagePublic />} />
           <Route path="/policy/:policyId/buy" element={<QuickBuyPage />} />
+          <Route path="/checkout/:policyId" element={<CheckoutPage />} />
+          <Route path="/purchase-success/:policyId" element={<PurchaseSuccessPage />} />
 
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
