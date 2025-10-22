@@ -8,7 +8,7 @@ import { useHybridAuth } from '../hooks/useHybridAuth';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
 
-const CheckoutForm: React.FC<{ policyData: any; purchaseData: any }> = ({ policyData, purchaseData }) => {
+const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret: string | null }> = ({ policyData, purchaseData, clientSecret }) => {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -16,12 +16,12 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any }> = ({ policy
 
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'netbanking'>('card');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!stripe || !elements) {
+    if (!stripe || !elements || !clientSecret) {
+      setError('Payment system not ready. Please try again.');
       return;
     }
 
@@ -29,149 +29,87 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any }> = ({ policy
     setError(null);
 
     try {
-      // For demo purposes, simulate payment success
-      // In production, you'd process with Stripe
-      const policyNumber = policyMarketplaceService.generatePolicyNumber(policyData.policy_type);
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        setError(submitError.message || 'Payment validation failed');
+        setProcessing(false);
+        return;
+      }
 
-      // Create policy record
-      const quickPolicy = await policyMarketplaceService.createQuickPolicy({
-        policy_number: policyNumber,
-        user_id: user?.id || 'guest',
-        catalog_policy_id: policyData.id,
-        policy_type: policyData.policy_type,
-        provider_id: policyData.provider_id,
-        customer_name: purchaseData.form_data.full_name,
-        customer_email: purchaseData.form_data.email,
-        customer_phone: purchaseData.form_data.phone,
-        customer_dob: purchaseData.form_data.dob ? new Date(purchaseData.form_data.dob) : undefined,
-        customer_gender: purchaseData.form_data.gender,
-        coverage_amount: parseFloat(purchaseData.form_data.coverage_amount),
-        monthly_premium: policyData.monthly_premium_base,
-        annual_premium: policyData.annual_premium_base,
-        policy_term_years: policyData.policy_term_years,
-        effective_date: new Date(),
-        expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + policyData.policy_term_years)),
-        quick_form_data: purchaseData.form_data,
-        purchase_source: 'quick_buy',
-        payment_status: 'completed',
-        amount_paid: policyData.annual_premium_base,
-        status: 'active',
+      const { error: paymentError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: {
+          return_url: window.location.origin + '/payment-processing',
+        },
+        redirect: 'if_required',
       });
 
-      // Clear localStorage
-      localStorage.removeItem('quick_buy_data');
+      if (paymentError) {
+        setError(paymentError.message || 'Payment failed. Please try again.');
+        setProcessing(false);
+        return;
+      }
 
-      // Navigate to success page
-      navigate(`/purchase-success/${quickPolicy.id}`);
+      if (paymentIntent && paymentIntent.status === 'succeeded') {
+        const policyNumber = policyMarketplaceService.generatePolicyNumber(policyData.policy_type);
+
+        const quickPolicy = await policyMarketplaceService.createQuickPolicy({
+          policy_number: policyNumber,
+          user_id: user?.id || 'guest',
+          catalog_policy_id: policyData.id,
+          policy_type: policyData.policy_type,
+          provider_id: policyData.provider_id,
+          customer_name: purchaseData.form_data.full_name,
+          customer_email: purchaseData.form_data.email,
+          customer_phone: purchaseData.form_data.phone,
+          customer_dob: purchaseData.form_data.dob ? new Date(purchaseData.form_data.dob) : undefined,
+          customer_gender: purchaseData.form_data.gender,
+          coverage_amount: parseFloat(purchaseData.form_data.coverage_amount),
+          monthly_premium: policyData.monthly_premium_base,
+          annual_premium: policyData.annual_premium_base,
+          policy_term_years: policyData.policy_term_years,
+          effective_date: new Date(),
+          expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + policyData.policy_term_years)),
+          quick_form_data: purchaseData.form_data,
+          purchase_source: 'quick_buy',
+          payment_id: paymentIntent.id,
+          payment_status: 'completed',
+          amount_paid: policyData.annual_premium_base * 1.18,
+          status: 'active',
+        });
+
+        localStorage.removeItem('quick_buy_data');
+        navigate(`/purchase-success/${quickPolicy.id}`);
+      }
     } catch (err: any) {
+      console.error('Payment error:', err);
       setError(err.message || 'Payment failed. Please try again.');
-    } finally {
       setProcessing(false);
     }
   };
 
+  if (!clientSecret) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Preparing payment...</p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Payment Method</h3>
-        <div className="grid grid-cols-3 gap-4">
-          <button
-            type="button"
-            onClick={() => setPaymentMethod('card')}
-            className={`p-4 border-2 rounded-lg transition-all ${
-              paymentMethod === 'card'
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <CreditCard className="w-6 h-6 mx-auto mb-2 text-gray-700" />
-            <div className="text-sm font-medium">Card</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaymentMethod('upi')}
-            className={`p-4 border-2 rounded-lg transition-all ${
-              paymentMethod === 'upi'
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <div className="text-xl font-bold mb-1">UPI</div>
-            <div className="text-xs text-gray-600">PhonePe, GPay</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaymentMethod('netbanking')}
-            className={`p-4 border-2 rounded-lg transition-all ${
-              paymentMethod === 'netbanking'
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <div className="text-sm font-medium mb-1">Net Banking</div>
-            <div className="text-xs text-gray-600">All Banks</div>
-          </button>
-        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Details</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Secure payment powered by Stripe. We support cards, UPI, and net banking.
+        </p>
       </div>
 
-      {paymentMethod === 'card' && (
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
-              <input
-                type="text"
-                placeholder="4242 4242 4242 4242"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
-                <input
-                  type="text"
-                  placeholder="MM/YY"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
-                <input
-                  type="text"
-                  placeholder="123"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {paymentMethod === 'upi' && (
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <label className="block text-sm font-medium text-gray-700 mb-2">UPI ID</label>
-          <input
-            type="text"
-            placeholder="yourname@paytm"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-          <p className="text-sm text-gray-500 mt-2">Enter your UPI ID to receive payment request</p>
-        </div>
-      )}
-
-      {paymentMethod === 'netbanking' && (
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Bank</label>
-          <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <option>State Bank of India</option>
-            <option>HDFC Bank</option>
-            <option>ICICI Bank</option>
-            <option>Axis Bank</option>
-            <option>Kotak Mahindra Bank</option>
-            <option>Other Banks</option>
-          </select>
-        </div>
-      )}
+      <div className="bg-gray-50 p-6 rounded-lg">
+        <PaymentElement />
+      </div>
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -202,6 +140,7 @@ const CheckoutPage: React.FC = () => {
 
   const [policyData, setPolicyData] = useState<any>(null);
   const [purchaseData, setPurchaseData] = useState<any>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -221,6 +160,38 @@ const CheckoutPage: React.FC = () => {
 
       const policy = await policyMarketplaceService.getPolicyById(policyId!);
       setPolicyData(policy);
+
+      const totalAmount = policy.annual_premium_base * 1.18;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            amount: totalAmount,
+            currency: 'inr',
+            policyData: {
+              id: policy.id,
+              name: policy.policy_name,
+            },
+            customerData: {
+              name: parsed.form_data.full_name,
+              email: parsed.form_data.email,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment intent');
+      }
+
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -274,9 +245,16 @@ const CheckoutPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <Elements stripe={stripePromise}>
-                <CheckoutForm policyData={policyData} purchaseData={purchaseData} />
-              </Elements>
+              {clientSecret ? (
+                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                  <CheckoutForm policyData={policyData} purchaseData={purchaseData} clientSecret={clientSecret} />
+                </Elements>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Preparing secure payment...</p>
+                </div>
+              )}
             </div>
           </div>
 
