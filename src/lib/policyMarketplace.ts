@@ -20,7 +20,7 @@ export interface PolicyCatalog {
   id: string;
   provider_id: string;
   provider?: PolicyProvider;
-  policy_type: 'term_life' | 'health' | 'investment' | 'car' | 'two_wheeler' | 'family_health';
+  policy_type: 'term_life' | 'health' | 'investment' | 'car' | 'two_wheeler' | 'family_health' | 'travel' | 'retirement' | 'home' | 'term_rop' | 'women_term';
   policy_name: string;
   policy_description?: string;
   coverage_amount_min?: number;
@@ -294,7 +294,12 @@ export const policyMarketplaceService = {
       'investment': 'INV',
       'car': 'CAR',
       'two_wheeler': 'TW',
-      'family_health': 'FH'
+      'family_health': 'FH',
+      'travel': 'TRV',
+      'retirement': 'RET',
+      'home': 'HOME',
+      'term_rop': 'TROP',
+      'women_term': 'WT'
     }[policyType] || 'POL';
 
     const date = new Date();
