@@ -12,6 +12,10 @@ const DashboardHome: React.FC = () => {
   const { userData, loading, firstName, policies, claims, questionnaires, location, weather, refreshWeather, initializeLocation } = useUserData();
   const [stats, setStats] = useState<any>(null);
 
+  const latestQuestionnaire = questionnaires && questionnaires.length > 0
+    ? questionnaires.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+    : null;
+
   useEffect(() => {
     loadStats();
   }, [userData]);
