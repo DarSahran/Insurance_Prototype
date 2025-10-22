@@ -56,7 +56,6 @@ const DashboardHome: React.FC = () => {
   };
 
   const hasCompletedProfile = userData?.profile && userData.profile.first_name;
-  const latestQuestionnaire = questionnaires[0];
 
   return (
     <div className="p-6 space-y-8">
@@ -77,13 +76,13 @@ const DashboardHome: React.FC = () => {
               <span>Complete Profile</span>
             </Link>
           )}
-          {!latestQuestionnaire && (
+          {policies.length === 0 && (
             <Link
-              to="/dashboard/assessment/new"
+              to="/browse-policies"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Start Assessment</span>
+              <span>Browse Policies</span>
             </Link>
           )}
         </div>
