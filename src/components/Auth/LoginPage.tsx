@@ -23,13 +23,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, 
 
   const handleOAuthSignIn = async (strategy: 'oauth_google' | 'oauth_apple') => {
     if (!isLoaded) return
-    
+
     setLoading(true)
     try {
+      const redirectUrl = localStorage.getItem('redirectAfterAuth') || '/dashboard';
+
       await clerkSignIn.authenticateWithRedirect({
         strategy,
-        redirectUrl: '/dashboard',
-        redirectUrlComplete: '/dashboard'
+        redirectUrl: redirectUrl,
+        redirectUrlComplete: redirectUrl
       })
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'OAuth sign-in failed' })

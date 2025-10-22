@@ -66,7 +66,14 @@ const SignupPage: React.FC = () => {
 
     try {
       await signUp(email, password, {});
-      navigate('/questionnaire');
+
+      const redirectUrl = localStorage.getItem('redirectAfterAuth');
+      if (redirectUrl) {
+        localStorage.removeItem('redirectAfterAuth');
+        navigate(redirectUrl);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to create account');
     } finally {
@@ -80,11 +87,13 @@ const SignupPage: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      
+
+      const redirectUrl = localStorage.getItem('redirectAfterAuth') || '/dashboard';
+
       await clerkSignUp.authenticateWithRedirect({
         strategy: provider,
-        redirectUrl: '/dashboard',
-        redirectUrlComplete: '/dashboard'
+        redirectUrl: redirectUrl,
+        redirectUrlComplete: redirectUrl
       });
     } catch (error: any) {
       setError(error.message || `Failed to sign up with ${provider.replace('oauth_', '')}`);

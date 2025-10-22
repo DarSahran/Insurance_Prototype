@@ -92,7 +92,13 @@ const LoginWrapper = () => {
   };
 
   const handleLoginSuccess = () => {
-    navigate('/dashboard');
+    const redirectUrl = localStorage.getItem('redirectAfterAuth');
+    if (redirectUrl) {
+      localStorage.removeItem('redirectAfterAuth');
+      navigate(redirectUrl);
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
