@@ -65,14 +65,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
     }
   };
 
+  // Handle browse policies - direct users to policy marketplace
+  const handleBrowsePolicies = () => {
+    navigate('/browse-policies');
+  };
+
   // Handle assessment start with authentication check
   const handleStartAssessment = () => {
     if (user) {
-      // User is logged in, proceed to assessment
-      onStartAssessment();
+      // User is logged in, proceed to dashboard assessment
+      navigate('/dashboard/assessment/new');
     } else {
-      // User is not logged in, redirect to signup
-      navigate('/signup');
+      // User is not logged in, show policies that they can browse without login
+      navigate('/browse-policies');
     }
   };
   
@@ -303,19 +308,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                 <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Features</a>
                 <a href="#demo" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Demo</a>
                 <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Reviews</a>
+                <button onClick={handleBrowsePolicies} className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Policies</button>
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span>{liveUsers} users online</span>
                 </div>
                 {user ? (
                   <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{user.email}</span>
-                    </div>
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="text-sm font-medium">Dashboard</span>
+                    </button>
                     <button
                       className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
                       onClick={handleSignOut}
+                      title="Sign Out"
                     >
                       <LogOut className="w-4 h-4" />
                     </button>
@@ -357,15 +367,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   <a href="#testimonials" className="block text-gray-800 font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>Reviews</a>
                   <button
                     className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium mt-4"
-                    onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
+                    onClick={() => { setIsMobileMenuOpen(false); user ? navigate('/dashboard') : navigate('/login'); }}
                   >
-                    Login
+                    {user ? 'Dashboard' : 'Login'}
                   </button>
                   <button
                     className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium mt-2"
-                    onClick={() => { setIsMobileMenuOpen(false); handleStartAssessment(); }}
+                    onClick={() => { setIsMobileMenuOpen(false); handleBrowsePolicies(); }}
                   >
-                    Start Assessment
+                    Browse Policies
                   </button>
                 </nav>
               </div>
@@ -404,7 +414,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
               {/* Enhanced CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button
-                  onClick={() => navigate('/browse-policies')}
+                  onClick={handleBrowsePolicies}
                   className="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg font-semibold relative overflow-hidden"
                 >
                   <span>Browse Policies</span>
@@ -415,7 +425,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
                   onClick={handleStartAssessment}
                   className="group bg-white text-blue-600 border-2 border-blue-600 px-8 py-4 rounded-xl hover:bg-blue-50 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg font-semibold"
                 >
-                  <span>{user ? 'Get AI Assessment' : 'Get AI-Powered Assessment'}</span>
+                  <span>{user ? 'Go to Dashboard' : 'Get AI Assessment'}</span>
                   <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
@@ -989,16 +999,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
           </div>
           
           <div className="space-y-4">
-            <button 
-              onClick={handleStartAssessment}
+            <button
+              onClick={handleBrowsePolicies}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-12 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg text-xl font-semibold relative overflow-hidden group"
             >
-              <span>{user ? 'Continue Your Assessment' : 'Get Your Personalized Quote Now'}</span>
+              <span>{user ? 'Browse All Policies' : 'Get Your Personalized Quote Now'}</span>
               <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </button>
-            
+
             <p className="text-gray-400 text-sm">
-              ✓ No commitment required ✓ 5-minute assessment ✓ Instant results ✓ Free consultation
+              ✓ No commitment required ✓ Instant quotes ✓ Compare plans ✓ Quick purchase
             </p>
           </div>
         </div>
@@ -1029,10 +1039,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
             <div>
               <h3 className="text-lg font-semibold mb-6">Product</h3>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">AI Risk Assessment</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Personalized Quotes</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Bias Detection</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API Integration</a></li>
+                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Browse Policies</button></li>
+                <li><button onClick={() => user ? navigate('/dashboard/assessment/new') : navigate('/browse-policies')} className="hover:text-white transition-colors">AI Risk Assessment</button></li>
+                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Get Quotes</button></li>
+                <li><button onClick={() => user ? navigate('/dashboard') : navigate('/login')} className="hover:text-white transition-colors">Dashboard</button></li>
               </ul>
             </div>
 
@@ -1040,10 +1050,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
             <div>
               <h3 className="text-lg font-semibold mb-6">Company</h3>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Press</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">About Us</button></li>
+                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Careers</button></li>
+                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Press</button></li>
+                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Contact</button></li>
               </ul>
             </div>
 
