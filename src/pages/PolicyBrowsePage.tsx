@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Shield, Heart, TrendingUp, Car, Bike, Users, Filter, Search, Star, Check, Plane, PiggyBank, Home } from 'lucide-react';
-import { policyMarketplaceService, PolicyCatalog } from '../lib/policyMarketplace';
+import { Shield, Heart, TrendingUp, Car, Bike, Users, Filter, Search, Star, Check, Plane, PiggyBank, Home, Sparkles } from 'lucide-react';
+import { policyBrowsingService } from '../lib/policyBrowsingService';
+import { getCompanyLogo, formatINR, formatPremiumINR } from '../lib/insuranceCompanyLogos';
+import { useHybridAuth } from '../hooks/useHybridAuth';
 
 const INSURANCE_TYPES = [
   { id: 'term_life', name: 'Term Life', icon: Shield, color: 'blue', description: 'Secure your family\'s future' },
@@ -21,13 +23,15 @@ const PolicyBrowsePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const selectedType = searchParams.get('type');
 
-  const [policies, setPolicies] = useState<PolicyCatalog[]>([]);
-  const [filteredPolicies, setFilteredPolicies] = useState<PolicyCatalog[]>([]);
+  const { user } = useHybridAuth();
+  const [policies, setPolicies] = useState<any[]>([]);
+  const [filteredPolicies, setFilteredPolicies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInsuranceType, setSelectedInsuranceType] = useState<string | null>(selectedType);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'premium' | 'coverage' | 'rating'>('premium');
   const [showFilters, setShowFilters] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
     loadPolicies();
@@ -38,12 +42,29 @@ const PolicyBrowsePage: React.FC = () => {
       setLoading(true);
       let data;
       if (selectedInsuranceType) {
-        data = await policyMarketplaceService.getPoliciesByType(selectedInsuranceType);
+        data = await policyBrowsingService.getPoliciesByType(selectedInsuranceType, 20);
       } else {
-        data = await policyMarketplaceService.getFeaturedPolicies();
+        // Load featured from multiple types
+        const healthPolicies = await policyBrowsingService.getPoliciesByType('health', 3);
+        const lifePolicies = await policyBrowsingService.getPoliciesByType('term_life', 3);
+        const carPolicies = await policyBrowsingService.getPoliciesByType('car', 2);
+        data = [...healthPolicies, ...lifePolicies, ...carPolicies].filter(p => p.isFeatured);
       }
       setPolicies(data);
       setFilteredPolicies(data);
+
+      // Get AI recommendations if user is logged in
+      if (user && data.length > 0) {
+        const userProfile = {
+          age: 30, // TODO: Get from user profile
+          income: 800000,
+          dependents: 2,
+          healthConditions: [],
+          preferences: ['comprehensive coverage']
+        };
+        const recommendations = await policyBrowsingService.getAIRecommendations(data, userProfile);
+        setAiRecommendations(recommendations);
+      }
     } catch (error) {
       console.error('Error loading policies:', error);
     } finally {
@@ -64,11 +85,14 @@ const PolicyBrowsePage: React.FC = () => {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'premium':
-          return a.monthly_premium_base - b.monthly_premium_base;
+          return a.monthlyPremium - b.monthlyPremium;
         case 'coverage':
-          return (b.coverage_amount_max || 0) - (a.coverage_amount_max || 0);
+          return b.coverageMax - a.coverageMax;
         case 'rating':
-          return (b.provider?.customer_rating || 0) - (a.provider?.customer_rating || 0);
+          // Sort by AI score if available
+          const scoreA = aiRecommendations.get(a.id)?.score || 0;
+          const scoreB = aiRecommendations.get(b.id)?.score || 0;
+          return scoreB - scoreA;
         default:
           return 0;
       }
@@ -86,13 +110,6 @@ const PolicyBrowsePage: React.FC = () => {
     navigate(`/policy/${policyId}`);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -194,75 +211,101 @@ const PolicyBrowsePage: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPolicies.map((policy) => (
-              <div
-                key={policy.id}
-                onClick={() => handlePolicyClick(policy.id)}
-                className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-blue-300 overflow-hidden"
-              >
-                {policy.is_featured && (
-                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold py-1 px-3 text-center">
-                    FEATURED
-                  </div>
-                )}
-
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">{policy.policy_name}</h3>
-                      <p className="text-sm text-gray-600">{policy.provider?.provider_name}</p>
-                    </div>
-                    {policy.provider?.customer_rating && (
-                      <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-semibold text-gray-900">
-                          {policy.provider.customer_rating.toFixed(1)}
+            {filteredPolicies.map((policy) => {
+              const aiRec = aiRecommendations.get(policy.id);
+              return (
+                <div
+                  key={policy.id}
+                  onClick={() => handlePolicyClick(policy.id)}
+                  className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-blue-300 overflow-hidden group"
+                >
+                  {/* Provider Logo Header */}
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <img
+                      src={policy.logo || getCompanyLogo(policy.providerName)}
+                      alt={policy.providerName}
+                      className="h-10 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.src = getCompanyLogo('default');
+                      }}
+                    />
+                    <div className="flex items-center gap-2">
+                      {policy.isFeatured && (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-current" />
+                          Featured
                         </span>
+                      )}
+                      {aiRec && aiRec.score >= 80 && (
+                        <span className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          AI Pick
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                          {policy.policyName}
+                        </h3>
+                        <p className="text-sm text-gray-600">{policy.providerName}</p>
+                      </div>
+                    </div>
+
+                    {aiRec && aiRec.score >= 75 && (
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3 mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="w-4 h-4 text-purple-600" />
+                          <span className="text-xs font-bold text-purple-900">AI Recommendation Score: {aiRec.score}/100</span>
+                        </div>
+                        <p className="text-xs text-purple-800">{aiRec.reasoning}</p>
                       </div>
                     )}
-                  </div>
 
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{policy.policy_description}</p>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{policy.description}</p>
 
-                  <div className="space-y-2 mb-4">
-                    {policy.key_features.slice(0, 3).map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
+                    {/* Coverage & Premium Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">Coverage</p>
+                        <p className="text-sm font-bold text-blue-700">
+                          {formatINR(policy.coverageMin)} - {formatINR(policy.coverageMax)}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-600">Coverage</span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {formatCurrency(policy.coverage_amount_min || 0)} - {formatCurrency(policy.coverage_amount_max || 0)}
-                      </span>
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">Premium</p>
+                        <p className="text-sm font-bold text-green-700">
+                          {formatPremiumINR(policy.annualPremium)}/yr
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Premium</span>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {formatCurrency(policy.monthly_premium_base)}
+
+                    {/* Key Features */}
+                    <div className="space-y-2 mb-4">
+                      {policy.keyFeatures.slice(0, 3).map((feature: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-xs text-gray-700">{feature}</span>
                         </div>
-                        <div className="text-xs text-gray-500">per month</div>
-                      </div>
+                      ))}
                     </div>
-                  </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePolicyClick(policy.id);
-                    }}
-                    className="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
-                  >
-                    View Details
-                  </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePolicyClick(policy.id);
+                      }}
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                    >
+                      Get Quote
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
