@@ -36,12 +36,12 @@ const AboutPage: React.FC = () => {
   ];
 
   const milestones = [
-    { year: '2023', event: 'Company Founded', description: 'Started with a vision to revolutionize insurance' },
-    { year: '2023', event: 'First AI Model', description: 'Launched our proprietary risk assessment algorithm' },
-    { year: '2024', event: '10,000 Users', description: 'Reached our first major user milestone' },
-    { year: '2024', event: '78% Accuracy', description: 'Achieved industry-leading prediction accuracy' },
-    { year: '2025', event: 'Series A Funding', description: 'Raised $15M to expand our platform' },
-    { year: '2025', event: '50+ Partners', description: 'Partnered with major insurance providers across India' }
+    { year: '2024', event: 'Company Founded', description: 'Started with a vision to revolutionize insurance' },
+    { year: '2025', event: 'First AI Model', description: 'Launched our proprietary risk assessment algorithm' },
+    { year: '2026', event: '10,000 Users', description: 'Reached our first major user milestone' },
+    { year: '2026', event: '78% Accuracy', description: 'Achieved industry-leading prediction accuracy' },
+    { year: '2027', event: 'Series A Funding', description: 'Raised $15M to expand our platform' },
+    { year: '2028', event: '50+ Partners', description: 'Partnered with major insurance providers across India' }
   ];
 
   return (
