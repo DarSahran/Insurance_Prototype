@@ -29,10 +29,9 @@ const AboutPage: React.FC = () => {
   ];
 
   const team = [
-    { name: 'Sarah Johnson', role: 'CEO & Co-Founder', expertise: 'Insurance Industry Veteran' },
-    { name: 'Michael Chen', role: 'CTO & Co-Founder', expertise: 'AI & Machine Learning Expert' },
-    { name: 'Emily Rodriguez', role: 'Chief Data Scientist', expertise: 'Risk Analytics Specialist' },
-    { name: 'David Kim', role: 'Head of Product', expertise: 'Product Strategy & UX' }
+    { name: 'Sahran Altaf', role: 'CEO & Co-Founder', expertise: 'Insurance Industry Veteran' },
+    { name: 'Ameya Soni', role: 'CTO & Co-Founder', expertise: 'AI & Machine Learning Expert' },
+    { name: 'Shreyas Patil', role: 'Chief Data Scientist', expertise: 'Risk Analytics Specialist' }
   ];
 
   const milestones = [
