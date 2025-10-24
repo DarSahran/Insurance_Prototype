@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   ChevronRight, Shield, Zap, Target, Eye, Star, CheckCircle,
   TrendingUp, Award, Lock, FileCheck, User, Clock, DollarSign,
   Users, ArrowRight, X, Menu, Globe,
   Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram,
   Sparkles, Brain, Database, Activity, PieChart,
-  ExternalLink, LogOut
+  ExternalLink, LogOut, MessageCircle
 } from 'lucide-react';
 import { demoScenarios } from '../data/demoData';
 import { useHybridAuth } from '../hooks/useHybridAuth';
 import { activeUsersService } from '../lib/activeUsersService';
+import InsureBot from './InsureBot';
 import youngProfessionalImg from '../assets/Young Professional.jpg';
 import middleProfessionalImg from '../assets/middle Professional.jpg';
 import seniorProfessionalImg from '../assets/senior Professional.jpg';
@@ -31,6 +32,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
   const [emailSubscription, setEmailSubscription] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [liveUsers, setLiveUsers] = useState(0);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
 
   const handleSignOut = async () => {
@@ -71,14 +73,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
     navigate('/browse-policies');
   };
 
+  // Handle AI assistant - open chatbot
+  const handleOpenChatbot = () => {
+    setIsChatbotOpen(true);
+  };
+
   // Handle assessment start with authentication check
   const handleStartAssessment = () => {
     if (user) {
       // User is logged in, proceed to dashboard assessment
       navigate('/dashboard/assessment/new');
     } else {
-      // User is not logged in, show policies that they can browse without login
-      navigate('/browse-policies');
+      // User is not logged in, show chatbot to help them
+      setIsChatbotOpen(true);
     }
   };
   
@@ -1104,6 +1111,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
           </div>
         </div>
       </footer>
+
+      {/* Floating Chat Button */}
+      {!isChatbotOpen && (
+        <button
+          onClick={handleOpenChatbot}
+          className="fixed bottom-6 right-6 z-40 w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 flex items-center justify-center group"
+          title="Chat with InsureBot"
+        >
+          <MessageCircle className="w-7 h-7 group-hover:scale-110 transition-transform" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+        </button>
+      )}
+
+      {/* InsureBot Chatbot */}
+      <InsureBot
+        isOpen={isChatbotOpen}
+        onClose={() => setIsChatbotOpen(false)}
+      />
     </div>
   );
 };
