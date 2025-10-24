@@ -357,18 +357,19 @@ const FormattedMessage: React.FC<{ content: string }> = ({ content }) => {
         return;
       }
 
-      // Check for headings (bold text followed by colon or just **text**)
-      const headingMatch = trimmedLine.match(/^\*\*(.+?)\*\*:?$/);
+      // Check for headings (bold text at start followed by colon)
+      const headingMatch = trimmedLine.match(/^\*\*(.+?)\*\*:(.*)$/);
       if (headingMatch) {
         elements.push(
-          <h4 key={`heading-${index}`} className="font-bold text-gray-900 text-base mt-4 mb-2">
-            {headingMatch[1]}
-          </h4>
+          <div key={`heading-${index}`} className="my-2">
+            <span className="font-bold text-gray-900 text-base">{headingMatch[1]}:</span>
+            {headingMatch[2] && <span className="text-sm text-gray-700 ml-1">{formatInlineText(headingMatch[2])}</span>}
+          </div>
         );
         return;
       }
 
-      // Regular text with inline formatting
+      // Regular text with inline formatting (handles **bold** anywhere in text)
       const formattedText = formatInlineText(trimmedLine);
       elements.push(
         <p key={`text-${index}`} className="text-sm text-gray-700 leading-relaxed my-2">
@@ -382,28 +383,35 @@ const FormattedMessage: React.FC<{ content: string }> = ({ content }) => {
   };
 
   const formatInlineText = (text: string) => {
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
+    if (!text.includes('**')) {
+      return text;
+    }
 
-    // Match **bold** text
+    const parts: React.ReactNode[] = [];
     const boldRegex = /\*\*(.+?)\*\*/g;
+    let lastIndex = 0;
     let match;
 
-    const processedText = text.replace(boldRegex, (_, p1) => `<BOLD>${p1}</BOLD>`);
-    const segments = processedText.split(/(<BOLD>.*?<\/BOLD>)/);
-
-    segments.forEach((segment, idx) => {
-      if (segment.startsWith('<BOLD>')) {
-        const boldText = segment.replace('<BOLD>', '').replace('</BOLD>', '');
-        parts.push(
-          <strong key={`bold-${idx}`} className="font-semibold text-gray-900">
-            {boldText}
-          </strong>
-        );
-      } else if (segment) {
-        parts.push(segment);
+    while ((match = boldRegex.exec(text)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
       }
-    });
+
+      // Add bold text
+      parts.push(
+        <strong key={`bold-${match.index}`} className="font-bold text-gray-900">
+          {match[1]}
+        </strong>
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text after last match
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
 
     return parts.length > 0 ? parts : text;
   };
