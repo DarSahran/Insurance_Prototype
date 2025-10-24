@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, X, Sparkles, RefreshCw, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageSquare, Send, X, Sparkles, RefreshCw, Minimize2, Maximize2, CheckCircle } from 'lucide-react';
 import { insureBotService } from '../lib/insureBotService';
 import { useHybridAuth } from '../hooks/useHybridAuth';
 
@@ -30,7 +30,7 @@ const InsureBot: React.FC<InsureBotProps> = ({ isOpen, onClose, isMinimized = fa
     if (messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: `Hi there! 👋 I'm InsureBot, your personal insurance advisor. I'm here to help you understand insurance policies, answer your questions, and guide you through your insurance journey.\n\nHow can I assist you today?`,
+        content: `Hi there! I'm InsureBot, your personal AI insurance advisor.\n\nI can help you with:\n\n• Understanding insurance policies and coverage options\n• Exploring dashboard features and tools\n• Filing claims and tracking their status\n• Finding the best policies for your needs\n• Answering questions about premiums, benefits, and tax savings\n\nWhat would you like to know about today?`,
         timestamp: new Date()
       }]);
     }
@@ -90,7 +90,7 @@ const InsureBot: React.FC<InsureBotProps> = ({ isOpen, onClose, isMinimized = fa
     insureBotService.resetConversation();
     setMessages([{
       role: 'assistant',
-      content: `Hi there! 👋 I'm InsureBot, your personal insurance advisor. Let's start fresh!\n\nWhat would you like to know about insurance?`,
+      content: `Hi there! I'm InsureBot, your personal AI insurance advisor.\n\nI can help you with:\n\n• Understanding insurance policies and coverage options\n• Exploring dashboard features and tools\n• Filing claims and tracking their status\n• Finding the best policies for your needs\n• Answering questions about premiums, benefits, and tax savings\n\nWhat would you like to know about today?`,
       timestamp: new Date()
     }]);
     setShowSuggestions(true);
@@ -144,30 +144,34 @@ const InsureBot: React.FC<InsureBotProps> = ({ isOpen, onClose, isMinimized = fa
         {!isMinimized && (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                 >
-                  <div className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                  <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
                     {message.role === 'assistant' && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                      <div className="flex items-center gap-2 mb-2 ml-1">
+                        <div className="w-7 h-7 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
                           <Sparkles className="w-4 h-4 text-white" />
                         </div>
-                        <span className="text-xs font-semibold text-gray-600">InsureBot</span>
+                        <span className="text-xs font-bold text-gray-700">InsureBot</span>
                       </div>
                     )}
                     <div
-                      className={`rounded-2xl p-4 ${
+                      className={`rounded-2xl p-5 ${
                         message.role === 'user'
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                          : 'bg-white shadow-sm border border-gray-200'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                          : 'bg-white shadow-md border border-gray-100'
                       }`}
                     >
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-                      <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
+                      {message.role === 'assistant' ? (
+                        <FormattedMessage content={message.content} />
+                      ) : (
+                        <p className="whitespace-pre-wrap text-base leading-relaxed">{message.content}</p>
+                      )}
+                      <p className={`text-xs mt-3 pt-2 border-t ${message.role === 'user' ? 'text-blue-100 border-blue-400' : 'text-gray-400 border-gray-100'}`}>
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -200,16 +204,19 @@ const InsureBot: React.FC<InsureBotProps> = ({ isOpen, onClose, isMinimized = fa
 
             {/* Suggestions */}
             {showSuggestions && messages.length <= 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 bg-white">
-                <p className="text-sm font-semibold text-gray-700 mb-3">Suggested questions:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {suggestedQuestions.slice(0, 4).map((question, index) => (
+              <div className="px-6 py-4 border-t border-gray-200 bg-gradient-to-b from-white to-gray-50">
+                <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  Quick Questions to Get Started
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+                  {suggestedQuestions.map((question, index) => (
                     <button
                       key={index}
                       onClick={() => handleSuggestionClick(question)}
-                      className="text-left text-sm px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                      className="text-left text-sm px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all shadow-sm hover:shadow-md border border-blue-100 group"
                     >
-                      {question}
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">{question}</span>
                     </button>
                   ))}
                 </div>
@@ -246,6 +253,162 @@ const InsureBot: React.FC<InsureBotProps> = ({ isOpen, onClose, isMinimized = fa
       </div>
     </div>
   );
+};
+
+// Add animation styles
+const animationStyles = `
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleId = 'insurebot-animations';
+  if (!document.getElementById(styleId)) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = styleId;
+    styleSheet.textContent = animationStyles;
+    document.head.appendChild(styleSheet);
+  }
+}
+
+const FormattedMessage: React.FC<{ content: string }> = ({ content }) => {
+  const formatContent = (text: string) => {
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    let currentList: string[] = [];
+    let listType: 'bullet' | 'number' | null = null;
+
+    const flushList = () => {
+      if (currentList.length > 0) {
+        if (listType === 'bullet') {
+          elements.push(
+            <ul key={`list-${elements.length}`} className="space-y-2 my-3 ml-4">
+              {currentList.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        } else if (listType === 'number') {
+          elements.push(
+            <ol key={`list-${elements.length}`} className="space-y-2 my-3 ml-4">
+              {currentList.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">
+                    {idx + 1}
+                  </span>
+                  <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ol>
+          );
+        }
+        currentList = [];
+        listType = null;
+      }
+    };
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+
+      // Check for bullet points (*, -, •)
+      const bulletMatch = trimmedLine.match(/^[*\-•]\s+(.+)/);
+      if (bulletMatch) {
+        if (listType !== 'bullet') {
+          flushList();
+          listType = 'bullet';
+        }
+        currentList.push(bulletMatch[1]);
+        return;
+      }
+
+      // Check for numbered lists (1., 2., etc.)
+      const numberMatch = trimmedLine.match(/^\d+\.\s+(.+)/);
+      if (numberMatch) {
+        if (listType !== 'number') {
+          flushList();
+          listType = 'number';
+        }
+        currentList.push(numberMatch[1]);
+        return;
+      }
+
+      // Flush any pending list
+      flushList();
+
+      // Empty lines
+      if (!trimmedLine) {
+        elements.push(<div key={`space-${index}`} className="h-2" />);
+        return;
+      }
+
+      // Check for headings (bold text followed by colon or just **text**)
+      const headingMatch = trimmedLine.match(/^\*\*(.+?)\*\*:?$/);
+      if (headingMatch) {
+        elements.push(
+          <h4 key={`heading-${index}`} className="font-bold text-gray-900 text-base mt-4 mb-2">
+            {headingMatch[1]}
+          </h4>
+        );
+        return;
+      }
+
+      // Regular text with inline formatting
+      const formattedText = formatInlineText(trimmedLine);
+      elements.push(
+        <p key={`text-${index}`} className="text-sm text-gray-700 leading-relaxed my-2">
+          {formattedText}
+        </p>
+      );
+    });
+
+    flushList();
+    return elements;
+  };
+
+  const formatInlineText = (text: string) => {
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+
+    // Match **bold** text
+    const boldRegex = /\*\*(.+?)\*\*/g;
+    let match;
+
+    const processedText = text.replace(boldRegex, (_, p1) => `<BOLD>${p1}</BOLD>`);
+    const segments = processedText.split(/(<BOLD>.*?<\/BOLD>)/);
+
+    segments.forEach((segment, idx) => {
+      if (segment.startsWith('<BOLD>')) {
+        const boldText = segment.replace('<BOLD>', '').replace('</BOLD>', '');
+        parts.push(
+          <strong key={`bold-${idx}`} className="font-semibold text-gray-900">
+            {boldText}
+          </strong>
+        );
+      } else if (segment) {
+        parts.push(segment);
+      }
+    });
+
+    return parts.length > 0 ? parts : text;
+  };
+
+  return <div className="space-y-1">{formatContent(content)}</div>;
 };
 
 export default InsureBot;
