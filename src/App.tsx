@@ -30,6 +30,10 @@ import PolicyDetailsPagePublic from './pages/PolicyDetailsPage';
 import QuickBuyPage from './pages/QuickBuyPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PurchaseSuccessPage from './pages/PurchaseSuccessPage';
+import AboutPage from './pages/AboutPage';
+import CareersPage from './pages/CareersPage';
+import ContactPage from './pages/ContactPage';
+import PressPage from './pages/PressPage';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -208,6 +212,12 @@ function App() {
           } />
           <Route path="/login" element={<LoginWrapper />} />
           <Route path="/signup" element={<SignupWrapper />} />
+
+          {/* Public Pages */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/press" element={<PressPage />} />
 
           {/* Public Policy Marketplace Routes */}
           <Route path="/browse-policies" element={<PolicyBrowsePage />} />

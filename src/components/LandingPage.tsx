@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { demoScenarios } from '../data/demoData';
 import { useHybridAuth } from '../hooks/useHybridAuth';
+import { activeUsersService } from '../lib/activeUsersService';
 import youngProfessionalImg from '../assets/Young Professional.jpg';
 import middleProfessionalImg from '../assets/middle Professional.jpg';
 import seniorProfessionalImg from '../assets/senior Professional.jpg';
@@ -29,7 +30,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [emailSubscription, setEmailSubscription] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
-  const [liveUsers, setLiveUsers] = useState(127);
+  const [liveUsers, setLiveUsers] = useState(0);
 
 
   const handleSignOut = async () => {
@@ -131,13 +132,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
     return () => clearTimeout(timer);
   }, []);
 
-  // Live user counter simulation
+  // Real-time active users tracking
   useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveUsers(prev => prev + Math.floor(Math.random() * 3) - 1);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
+    // Start tracking this user
+    activeUsersService.startTracking(user?.id);
+
+    // Get initial count
+    activeUsersService.getActiveUserCount().then(count => {
+      setLiveUsers(count || 0);
+    });
+
+    // Subscribe to real-time updates
+    const unsubscribe = activeUsersService.subscribeToActiveUsers((count) => {
+      setLiveUsers(count || 0);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribe();
+      activeUsersService.stopTracking();
+    };
+  }, [user]);
 
   // Auto-rotating testimonials
   useEffect(() => {
@@ -1050,10 +1065,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onLoadDemo
             <div>
               <h3 className="text-lg font-semibold mb-6">Company</h3>
               <ul className="space-y-3 text-gray-400">
-                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">About Us</button></li>
-                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Careers</button></li>
-                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Press</button></li>
-                <li><button onClick={handleBrowsePolicies} className="hover:text-white transition-colors">Contact</button></li>
+                <li><button onClick={() => navigate('/about')} className="hover:text-white transition-colors">About Us</button></li>
+                <li><button onClick={() => navigate('/careers')} className="hover:text-white transition-colors">Careers</button></li>
+                <li><button onClick={() => navigate('/press')} className="hover:text-white transition-colors">Press</button></li>
+                <li><button onClick={() => navigate('/contact')} className="hover:text-white transition-colors">Contact</button></li>
               </ul>
             </div>
 
