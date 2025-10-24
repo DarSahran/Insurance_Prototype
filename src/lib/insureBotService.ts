@@ -26,7 +26,7 @@ class InsureBotService {
       throw new Error('Gemini API key not found');
     }
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     this.sessionId = this.getOrCreateSessionId();
   }
 
