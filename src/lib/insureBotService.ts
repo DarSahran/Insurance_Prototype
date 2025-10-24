@@ -40,40 +40,86 @@ class InsureBotService {
   }
 
   /**
-   * Search knowledge base for relevant content
+   * Search knowledge base for relevant content with enhanced scoring
    */
   private async searchKnowledgeBase(query: string): Promise<KnowledgeItem[]> {
     try {
-      // Simple keyword-based search
-      const keywords = query.toLowerCase().split(' ')
-        .filter(word => word.length > 3);
+      const queryLower = query.toLowerCase();
+
+      // Extract keywords (ignore common words)
+      const stopWords = ['what', 'how', 'when', 'where', 'which', 'who', 'can', 'does', 'do', 'is', 'are', 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
+      const keywords = queryLower.split(/\s+/)
+        .filter(word => word.length > 2 && !stopWords.includes(word));
 
       const { data, error } = await supabase
         .from('knowledge_base')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
       if (error) throw error;
 
-      // Score each knowledge item based on relevance
+      // Enhanced scoring with multiple factors
       const scoredItems = (data || []).map(item => {
         let score = 0;
-        const itemText = `${item.title} ${item.content} ${item.category}`.toLowerCase();
+        const titleLower = item.title.toLowerCase();
+        const contentLower = item.content.toLowerCase();
+        const categoryLower = item.category.toLowerCase();
+        const fullText = `${titleLower} ${contentLower} ${categoryLower}`;
 
+        // Exact phrase match in title (highest weight)
+        if (titleLower.includes(queryLower)) {
+          score += 100;
+        }
+
+        // Exact phrase match in content
+        if (contentLower.includes(queryLower)) {
+          score += 50;
+        }
+
+        // Category match
+        if (categoryLower.includes(queryLower.replace(/\s+/g, '_'))) {
+          score += 30;
+        }
+
+        // Keyword matching with position weighting
         keywords.forEach(keyword => {
-          if (itemText.includes(keyword)) {
-            score += 1;
+          // Title matches (higher weight)
+          if (titleLower.includes(keyword)) {
+            score += 20;
+          }
+
+          // Content matches
+          const contentMatches = (contentLower.match(new RegExp(keyword, 'g')) || []).length;
+          score += contentMatches * 3;
+
+          // Category matches
+          if (categoryLower.includes(keyword)) {
+            score += 10;
+          }
+        });
+
+        // Boost for dashboard-related queries
+        if (queryLower.includes('dashboard') || queryLower.includes('feature')) {
+          if (categoryLower.includes('dashboard')) {
+            score += 25;
+          }
+        }
+
+        // Boost for policy-specific queries
+        const policyTypes = ['health', 'life', 'term', 'motor', 'car', 'bike', 'travel', 'home', 'family'];
+        policyTypes.forEach(type => {
+          if (queryLower.includes(type) && (categoryLower.includes(type) || titleLower.includes(type))) {
+            score += 15;
           }
         });
 
         return { ...item, score };
       });
 
-      // Return top 3 most relevant items
+      // Return top 5 most relevant items (increased from 3 for better context)
       return scoredItems
         .filter(item => item.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 3);
+        .slice(0, 5);
     } catch (error) {
       console.error('Error searching knowledge base:', error);
       return [];
@@ -197,28 +243,56 @@ class InsureBotService {
       const recentHistory = history.slice(-6); // Last 3 exchanges
 
       // Build prompt with context and history
-      const systemPrompt = `You are InsureBot, an intelligent insurance advisor AI assistant for SmartCover AI. Your role is to help users understand insurance policies, answer questions, and guide them through their insurance journey.
+      const systemPrompt = `You are InsureBot, an intelligent insurance advisor AI assistant for SmartCover AI. Your role is to help users understand insurance policies, answer questions about our platform features, and guide them through their insurance journey.
+
+Core Capabilities:
+- Explain all insurance types: Health, Life, Motor (Car/Bike), Travel, Home, Investment, Retirement
+- Guide users through dashboard features and how to use them
+- Help with policy selection, claims filing, renewals, and payments
+- Provide details about coverage, premiums, benefits, and exclusions
+- Assist with understanding tax benefits and documentation requirements
 
 Key Guidelines:
-- Be friendly, professional, and empathetic
-- Provide accurate, concise answers based on the context provided
-- If you don't have information, be honest and suggest contacting support
-- Always prioritize user's best interests
-- Use simple language, avoid jargon when possible
-- Be proactive in asking clarifying questions
-- Mention specific coverage amounts, benefits, and features when relevant
-- Guide users to take action (get quotes, file claims, etc.)
+- Be friendly, professional, and empathetic - you're a trusted advisor
+- Provide accurate, detailed answers based on the context provided below
+- Reference specific policy names, coverage amounts, and premium ranges when available
+- If you don't have exact information, be honest and suggest contacting support
+- Use simple language but be comprehensive - users want detailed information
+- Structure complex information with bullet points or numbered lists
+- Always mention relevant dashboard features that can help the user
+- Proactively suggest next steps (e.g., "You can view all health policies in the dashboard under Browse Policies")
+- For policy questions, mention 2-3 specific options with premiums and key features
+- For dashboard questions, explain the feature clearly with step-by-step instructions
 
-Context from Knowledge Base:
+Platform Highlights:
+- 78% AI prediction accuracy (11x better than traditional methods)
+- 90% faster application processing (weeks to minutes)
+- 59 insurance providers with 1000+ policies across all categories
+- 5000+ network hospitals for cashless treatment
+- Average claim settlement: 36 hours
+- 24/7 customer support via chat, email, phone
+
+Dashboard Features Available:
+- Policy Management: View, compare, and manage all policies
+- AI Risk Assessment: Get personalized recommendations in 15 minutes
+- Claims Management: File and track claims with real-time status
+- Health Tracking: Monitor health metrics and get wellness tips
+- Financial Planning: Analyze coverage gaps and optimize premiums
+- Document Center: Secure cloud storage for all documents
+- Family Management: Manage insurance for entire family
+- Provider Network: Find 5000+ hospitals and healthcare providers
+- Payment Management: Auto-pay, reminders, and history
+
+Contact Information:
+- Phone: +91 9797974779 (Mon-Fri 9 AM-6 PM IST)
+- Email: darsahran12@gmail.com
+- WhatsApp: +91 9797974779
+- Office: Pune, Maharashtra, India
+
+RELEVANT CONTEXT FOR THIS QUERY:
 ${contextText}
 
-Important Information:
-- SmartCover AI achieves 78% accuracy (11x better than traditional methods)
-- Applications processed 90% faster (weeks to minutes)
-- 5000+ network hospitals for cashless treatment
-- Claims settled within 24-48 hours
-- Customer support: +91 9797974779, darsahran12@gmail.com
-- 24/7 support available`;
+Remember: Use the context above to provide detailed, accurate answers. If the user asks about policies, mention specific options with premiums. If they ask about dashboard features, explain step-by-step how to use them.`;
 
       const conversationContext = recentHistory
         .map(msg => `${msg.role}: ${msg.content}`)
@@ -256,13 +330,17 @@ InsureBot:`;
   getSuggestedQuestions(): string[] {
     return [
       "What types of insurance do you offer?",
-      "How do I file a claim?",
-      "What's covered in health insurance?",
-      "How are premiums calculated?",
-      "Do you offer family floater plans?",
-      "What is cashless treatment?",
-      "What documents do I need?",
-      "How long does claim settlement take?"
+      "Show me health insurance options with premiums",
+      "How does the AI Risk Assessment work?",
+      "What dashboard features are available?",
+      "How do I file a claim online?",
+      "Tell me about family floater health plans",
+      "What's the cashless treatment process?",
+      "How can I track my health in the dashboard?",
+      "What are the tax benefits on insurance?",
+      "Show me term life insurance policies",
+      "How do I renew my policy?",
+      "What documents do I need for health insurance?"
     ];
   }
 
