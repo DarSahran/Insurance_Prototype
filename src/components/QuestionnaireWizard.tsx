@@ -1,23 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle, FileText, Cpu } from 'lucide-react';
-import DynamicQuestionnaireForm from './DynamicQuestionnaireForm';
+import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle, User, Heart, Activity, DollarSign, Cpu } from 'lucide-react';
+import DemographicsStep from './questionnaire/DemographicsStep';
+import HealthStep from './questionnaire/HealthStep';
+import LifestyleStep from './questionnaire/LifestyleStep';
+import FinancialStep from './questionnaire/FinancialStep';
 import AIAnalysisStep from './questionnaire/AIAnalysisStep';
 import { useHybridAuth } from '../hooks/useHybridAuth';
 import { saveInsuranceQuestionnaire, updateQuestionnaire, getLatestQuestionnaire } from '../lib/database';
-import { INSURANCE_QUESTIONS_MAP } from '../data/insuranceQuestions';
 
 interface QuestionnaireWizardProps {
-  insuranceType: string;
   onComplete: (data: any) => void;
-  onBack?: () => void;
+  onBack: () => void;
   initialData?: any;
   isDashboardMode?: boolean;
 }
 
-const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType, onComplete, onBack, initialData = {}, isDashboardMode = false }) => {
+const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, onBack, initialData = {}, isDashboardMode = false }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    questionnaireData: initialData.questionnaireData || {},
+    demographics: initialData.demographics || {},
+    health: initialData.health || {},
+    lifestyle: initialData.lifestyle || {},
+    financial: initialData.financial || {},
     processing: false
   });
   const [errors, setErrors] = useState<{ general?: string }>({});
@@ -31,9 +35,12 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType
       if (user) {
         try {
           const { data, error } = await getLatestQuestionnaire(user.id);
-          if (data && !error && data.insurance_type === insuranceType) {
+          if (data && !error) {
             setFormData({
-              questionnaireData: data.type_specific_data || {},
+              demographics: data.demographics || {},
+              health: data.health || {},
+              lifestyle: data.lifestyle || {},
+              financial: data.financial || {},
               processing: false
             });
             setExistingQuestionnaireId(data.id);
@@ -45,7 +52,7 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType
     };
 
     loadExistingData();
-  }, [user, insuranceType]);
+  }, [user]);
 
   // Auto-save functionality
   const autoSaveData = async () => {
@@ -55,17 +62,21 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType
     try {
       const questionnaireData = {
         user_id: user.id,
-        insurance_type: insuranceType,
-        type_specific_data: formData.questionnaireData,
+        demographics: formData.demographics,
+        health: formData.health,
+        lifestyle: formData.lifestyle,
+        financial: formData.financial,
         status: 'draft' as const
       };
 
       if (existingQuestionnaireId) {
+        // Update existing questionnaire
         const { error } = await updateQuestionnaire(existingQuestionnaireId, questionnaireData);
         if (error) {
           console.error('Error updating questionnaire:', error);
         }
       } else {
+        // Create new questionnaire
         const { data, error } = await saveInsuranceQuestionnaire(questionnaireData);
         if (data && !error) {
           setExistingQuestionnaireId(data.id);
@@ -83,83 +94,71 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType
   // Auto-save when form data changes (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (user && Object.keys(formData.questionnaireData).length > 0) {
+      if (user && (formData.demographics || formData.health || formData.lifestyle || formData.financial)) {
         autoSaveData();
       }
-    }, 2000);
+    }, 2000); // Save after 2 seconds of inactivity
 
     return () => clearTimeout(timeoutId);
   }, [formData, user]);
 
-  const insuranceTypeNames: Record<string, string> = {
-    term_life: 'Term Life Insurance',
-    health: 'Health Insurance',
-    family_health: 'Family Health Insurance',
-    car: 'Car Insurance',
-    two_wheeler: 'Two Wheeler Insurance',
-    travel: 'Travel Insurance',
-    investment: 'Investment Plans',
-    retirement: 'Retirement Plans',
-    home: 'Home Insurance',
-    term_rop: 'Term with Return of Premium',
-  };
-
   const steps = [
-    { id: 1, title: `${insuranceTypeNames[insuranceType] || 'Insurance'} Assessment`, icon: FileText, progress: 50 },
-    { id: 2, title: 'AI Analysis & Results', icon: Cpu, progress: 100 }
+    { id: 1, title: 'Personal Information', icon: User, progress: 20 },
+    { id: 2, title: 'Health & Medical History', icon: Heart, progress: 40 },
+    { id: 3, title: 'Lifestyle Assessment', icon: Activity, progress: 60 },
+    { id: 4, title: 'Coverage Preferences', icon: DollarSign, progress: 80 },
+    { id: 5, title: 'AI Analysis & Results', icon: Cpu, progress: 100 }
   ];
 
-  const updateFormData = (data: any) => {
+  const updateFormData = (stepKey: string, data: any) => {
     setFormData(prev => ({
       ...prev,
-      questionnaireData: data
+      [stepKey]: { ...(prev as any)[stepKey], ...data }
     }));
   };
 
   const validateStep = (step: number) => {
-    if (step === 1) {
-      const questions = INSURANCE_QUESTIONS_MAP[insuranceType] || [];
-      const requiredQuestions = questions.filter(q => q.required);
-      const missingAnswers = requiredQuestions.filter(q => {
-        const value = formData.questionnaireData[q.id];
-        return value === undefined || value === '' || value === null;
-      });
-
-      if (missingAnswers.length > 0) {
-        setErrors({ general: `Please fill in all required fields (${missingAnswers.length} missing)` });
-        return false;
-      }
+    // Simple validation logic - in real app would be more comprehensive
+    const stepKeys = ['demographics', 'health', 'lifestyle', 'financial'];
+    const currentData = (formData as any)[stepKeys[step - 1]];
+    
+    if (!currentData || Object.keys(currentData).length === 0) {
+      setErrors({ general: 'Please fill in the required fields' });
+      return false;
     }
-
+    
     setErrors({});
     return true;
   };
 
   const handleNext = async () => {
-    if (currentStep < 2 && validateStep(currentStep)) {
+    if (currentStep < 5 && validateStep(currentStep)) {
       setCurrentStep(prev => prev + 1);
+      // Scroll to top smoothly when moving to next step
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (currentStep === 1) {
-      setCurrentStep(2);
+    } else if (currentStep === 4) {
+      // Start AI processing
+      setCurrentStep(5);
       setFormData(prev => ({ ...prev, processing: true }));
       
       // Simulate AI processing and save final data
       setTimeout(async () => {
         console.log('AI Processing completed, starting data save...');
 
-        const riskScore = calculateRiskScore(formData, insuranceType);
-        const premiumEstimate = calculatePremiumEstimate(formData, riskScore, insuranceType);
+        // Calculate risk score and premium estimate
+        const riskScore = calculateRiskScore(formData);
+        const premiumEstimate = calculatePremiumEstimate(formData, riskScore);
 
+        // Create AI analysis object
         const aiAnalysis = {
           riskScore,
           premiumEstimate,
-          riskFactors: analyzeRiskFactors(formData, insuranceType),
-          recommendations: generateRecommendations(formData, insuranceType),
+          riskFactors: analyzeRiskFactors(formData),
+          recommendations: generateRecommendations(formData),
           confidence: 95,
           processingTime: 2.3,
           biasCheck: 'passed',
-          model: 'XGBoost Ensemble',
-          insuranceType
+          model: 'XGBoost Ensemble'
         };
 
         const finalData = {
@@ -170,15 +169,19 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType
           premiumEstimate
         };
 
+        // Update formData with results so the View Dashboard button can access them
         setFormData(finalData);
 
+        // Save final questionnaire data to Supabase
         if (user) {
           setIsSaving(true);
           try {
             const questionnaireData = {
               user_id: user.id,
-              insurance_type: insuranceType,
-              type_specific_data: formData.questionnaireData,
+              demographics: finalData.demographics,
+              health: finalData.health,
+              lifestyle: finalData.lifestyle,
+              financial: finalData.financial,
               ai_analysis: aiAnalysis,
               risk_score: riskScore,
               premium_estimate: premiumEstimate,
@@ -217,66 +220,71 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType
     }
   };
 
-  const calculateRiskScore = (data: any, type: string) => {
-    const answers = data.questionnaireData || {};
+  // Helper functions for AI analysis
+  const calculateRiskScore = (data: any) => {
     let baseRisk = 30;
-
-    if (answers.dateOfBirth) {
-      const age = new Date().getFullYear() - new Date(answers.dateOfBirth).getFullYear();
+    
+    // Age factor
+    if (data.demographics?.dateOfBirth) {
+      const age = new Date().getFullYear() - new Date(data.demographics.dateOfBirth).getFullYear();
       if (age < 25) baseRisk += 5;
       else if (age > 50) baseRisk += 10;
       else if (age > 65) baseRisk += 20;
     }
-
-    const conditions = answers.medicalConditions || [];
-    if (Array.isArray(conditions)) {
-      baseRisk += conditions.filter(c => c !== 'None').length * 8;
-    }
-
-    if (answers.smokingStatus === 'Current') baseRisk += 25;
-    else if (answers.smokingStatus === 'Former (quit >1 year)' || answers.smokingStatus === 'Former') baseRisk += 10;
-
-    if (answers.exerciseFrequency !== undefined) {
-      if (answers.exerciseFrequency < 2) baseRisk += 8;
-      else if (answers.exerciseFrequency >= 4) baseRisk -= 5;
-    }
-
+    
+    // Health factors
+    const conditions = data.health?.medicalConditions || [];
+    baseRisk += conditions.length * 8;
+    
+    if (data.health?.smokingStatus === 'current') baseRisk += 25;
+    else if (data.health?.smokingStatus === 'former') baseRisk += 10;
+    
+    // Lifestyle factors
+    if ((data.lifestyle?.exerciseFrequency || 0) < 2) baseRisk += 8;
+    else if ((data.lifestyle?.exerciseFrequency || 0) >= 4) baseRisk -= 5;
+    
+    if ((data.lifestyle?.stressLevel || 5) > 7) baseRisk += 6;
+    else if ((data.lifestyle?.stressLevel || 5) < 4) baseRisk -= 3;
+    
     return Math.min(Math.max(baseRisk, 5), 95);
   };
 
-  const calculatePremiumEstimate = (data: any, riskScore: number, type: string) => {
-    const answers = data.questionnaireData || {};
-    const coverageAmount = parseInt(answers.coverageAmount) || 500000;
-    return Math.round((riskScore * 1.5 + (coverageAmount / 10000)) * 1.2);
+  const calculatePremiumEstimate = (data: any, riskScore: number) => {
+    const coverageAmount = data.financial?.coverageAmount || 250000;
+    return Math.round((riskScore * 0.8 + (coverageAmount / 10000)) * 1.2);
   };
 
-  const analyzeRiskFactors = (data: any, type: string) => {
-    const answers = data.questionnaireData || {};
-    const age = answers.dateOfBirth ?
-      new Date().getFullYear() - new Date(answers.dateOfBirth).getFullYear() : 30;
+  const analyzeRiskFactors = (data: any) => {
+    const age = data.demographics?.dateOfBirth ? 
+      new Date().getFullYear() - new Date(data.demographics.dateOfBirth).getFullYear() : 30;
 
     return [
       { name: 'Age', impact: age < 35 ? -5 : age > 50 ? 15 : 5, description: 'Age-related risk assessment' },
-      { name: 'Health Conditions', impact: ((answers.medicalConditions || []).length) * 8, description: 'Pre-existing medical conditions' },
-      { name: 'Lifestyle', impact: (answers.exerciseFrequency || 0) >= 3 ? -8 : 5, description: 'Physical activity level' }
+      { name: 'Health Conditions', impact: (data.health?.medicalConditions?.length || 0) * 8, description: 'Pre-existing medical conditions' },
+      { name: 'Smoking Status', impact: data.health?.smokingStatus === 'current' ? 25 : data.health?.smokingStatus === 'former' ? 10 : -5, description: 'Tobacco use impact' },
+      { name: 'Exercise Frequency', impact: (data.lifestyle?.exerciseFrequency || 0) >= 3 ? -8 : 5, description: 'Physical activity level' },
+      { name: 'Stress Level', impact: (data.lifestyle?.stressLevel || 5) > 7 ? 10 : -3, description: 'Stress management and mental health' }
     ];
   };
 
-  const generateRecommendations = (data: any, type: string) => {
+  const generateRecommendations = (data: any) => {
     const recommendations = [];
-    const answers = data.questionnaireData || {};
-
-    if (answers.smokingStatus === 'Current') {
-      recommendations.push({ text: 'Quit smoking to reduce premiums significantly', impact: 'High' });
+    
+    if (data.health?.smokingStatus === 'current') {
+      recommendations.push({ text: 'Quit smoking to reduce premiums by up to 50%', impact: 'High' });
     }
-
-    if ((answers.exerciseFrequency || 0) < 3) {
+    
+    if ((data.lifestyle?.exerciseFrequency || 0) < 3) {
       recommendations.push({ text: 'Increase exercise to 3+ times per week', impact: 'Medium' });
     }
-
+    
+    if ((data.lifestyle?.stressLevel || 5) > 7) {
+      recommendations.push({ text: 'Consider stress management techniques', impact: 'Medium' });
+    }
+    
     recommendations.push({ text: 'Annual health checkups for preventive care', impact: 'Low' });
-    recommendations.push({ text: 'Compare multiple providers for best rates', impact: 'Medium' });
-
+    recommendations.push({ text: 'Connect wearable device for activity tracking discount', impact: 'Low' });
+    
     return recommendations;
   };
 
@@ -292,13 +300,33 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ insuranceType
     switch (currentStep) {
       case 1:
         return (
-          <DynamicQuestionnaireForm
-            insuranceType={insuranceType}
-            data={formData.questionnaireData}
-            onChange={updateFormData}
+          <DemographicsStep 
+            data={formData.demographics} 
+            onChange={(data) => updateFormData('demographics', data)} 
           />
         );
       case 2:
+        return (
+          <HealthStep 
+            data={formData.health} 
+            onChange={(data) => updateFormData('health', data)} 
+          />
+        );
+      case 3:
+        return (
+          <LifestyleStep 
+            data={formData.lifestyle} 
+            onChange={(data) => updateFormData('lifestyle', data)} 
+          />
+        );
+      case 4:
+        return (
+          <FinancialStep 
+            data={formData.financial} 
+            onChange={(data) => updateFormData('financial', data)} 
+          />
+        );
+      case 5:
         return <AIAnalysisStep processing={formData.processing} data={formData} />;
       default:
         return null;
