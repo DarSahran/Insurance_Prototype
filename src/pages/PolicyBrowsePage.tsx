@@ -106,17 +106,13 @@ const PolicyBrowsePage: React.FC = () => {
     navigate(`/browse-policies?type=${typeId}`);
   };
 
-  const handlePolicyClick = (policyId: string, insuranceType?: string) => {
-    if (insuranceType) {
-      navigate(`/assessment/${insuranceType}?policyId=${policyId}`);
-    } else {
-      navigate(`/policy/${policyId}`);
-    }
+  const handlePolicyClick = (policyId: string) => {
+    navigate(`/policy/${policyId}`);
   };
 
-  const handleGetQuote = (e: React.MouseEvent, insuranceType: string) => {
+  const handleGetQuote = (e: React.MouseEvent, policyId: string) => {
     e.stopPropagation();
-    navigate(`/assessment/${insuranceType}`);
+    navigate(`/checkout/${policyId}`);
   };
 
 
@@ -225,7 +221,7 @@ const PolicyBrowsePage: React.FC = () => {
               return (
                 <div
                   key={policy.id}
-                  onClick={() => handlePolicyClick(policy.id, policy.policyType)}
+                  onClick={() => handlePolicyClick(policy.id)}
                   className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-blue-300 overflow-hidden group"
                 >
                   {/* Provider Logo Header */}
@@ -303,7 +299,7 @@ const PolicyBrowsePage: React.FC = () => {
                     </div>
 
                     <button
-                      onClick={(e) => handleGetQuote(e, policy.policyType || selectedInsuranceType || 'health')}
+                      onClick={(e) => handleGetQuote(e, policy.id)}
                       className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
                     >
                       Get Quote
