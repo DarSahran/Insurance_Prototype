@@ -10,7 +10,7 @@ const INSURANCE_TYPES = [
   { id: 'health', name: 'Health', icon: Heart, color: 'red', description: 'Comprehensive health coverage' },
   { id: 'family_health', name: 'Family Health', icon: Users, color: 'green', description: 'Complete family protection' },
   { id: 'car', name: 'Car Insurance', icon: Car, color: 'cyan', description: 'Protect your vehicle' },
-  { id: 'two-wheeler', name: 'Two Wheeler', icon: Bike, color: 'orange', description: 'Bike insurance coverage' },
+  { id: 'two_wheeler', name: 'Two Wheeler', icon: Bike, color: 'orange', description: 'Bike insurance coverage' },
   { id: 'investment', name: 'Investment', icon: TrendingUp, color: 'teal', description: 'Grow your wealth' },
   { id: 'travel', name: 'Travel', icon: Plane, color: 'sky', description: 'Safe journeys worldwide' },
   { id: 'retirement', name: 'Retirement', icon: PiggyBank, color: 'emerald', description: 'Plan your golden years' },
