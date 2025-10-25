@@ -34,6 +34,7 @@ import AboutPage from './pages/AboutPage';
 import CareersPage from './pages/CareersPage';
 import ContactPage from './pages/ContactPage';
 import PressPage from './pages/PressPage';
+import InsuranceAssessmentWizard from './components/InsuranceAssessmentWizard';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -221,9 +222,10 @@ function App() {
 
           {/* Public Policy Marketplace Routes */}
           <Route path="/browse-policies" element={<PolicyBrowsePage />} />
+          <Route path="/assessment/:insuranceType" element={<InsuranceAssessmentWizard />} />
           <Route path="/policy/:policyId" element={<PolicyDetailsPagePublic />} />
           <Route path="/policy/:policyId/buy" element={<QuickBuyPage />} />
-          <Route path="/checkout/:policyId" element={<CheckoutPage />} />
+          <Route path="/checkout/:policyId?" element={<CheckoutPage />} />
           <Route path="/purchase-success/:policyId" element={<PurchaseSuccessPage />} />
 
           {/* Dashboard Routes */}

@@ -6,11 +6,11 @@ import { getCompanyLogo, formatINR, formatPremiumINR } from '../lib/insuranceCom
 import { useHybridAuth } from '../hooks/useHybridAuth';
 
 const INSURANCE_TYPES = [
-  { id: 'term_life', name: 'Term Life', icon: Shield, color: 'blue', description: 'Secure your family\'s future' },
+  { id: 'term-life', name: 'Term Life', icon: Shield, color: 'blue', description: 'Secure your family\'s future' },
   { id: 'health', name: 'Health', icon: Heart, color: 'red', description: 'Comprehensive health coverage' },
   { id: 'family_health', name: 'Family Health', icon: Users, color: 'green', description: 'Complete family protection' },
   { id: 'car', name: 'Car Insurance', icon: Car, color: 'cyan', description: 'Protect your vehicle' },
-  { id: 'two_wheeler', name: 'Two Wheeler', icon: Bike, color: 'orange', description: 'Bike insurance coverage' },
+  { id: 'two-wheeler', name: 'Two Wheeler', icon: Bike, color: 'orange', description: 'Bike insurance coverage' },
   { id: 'investment', name: 'Investment', icon: TrendingUp, color: 'teal', description: 'Grow your wealth' },
   { id: 'travel', name: 'Travel', icon: Plane, color: 'sky', description: 'Safe journeys worldwide' },
   { id: 'retirement', name: 'Retirement', icon: PiggyBank, color: 'emerald', description: 'Plan your golden years' },
@@ -106,8 +106,17 @@ const PolicyBrowsePage: React.FC = () => {
     navigate(`/browse-policies?type=${typeId}`);
   };
 
-  const handlePolicyClick = (policyId: string) => {
-    navigate(`/policy/${policyId}`);
+  const handlePolicyClick = (policyId: string, insuranceType?: string) => {
+    if (insuranceType) {
+      navigate(`/assessment/${insuranceType}?policyId=${policyId}`);
+    } else {
+      navigate(`/policy/${policyId}`);
+    }
+  };
+
+  const handleGetQuote = (e: React.MouseEvent, insuranceType: string) => {
+    e.stopPropagation();
+    navigate(`/assessment/${insuranceType}`);
   };
 
 
@@ -216,7 +225,7 @@ const PolicyBrowsePage: React.FC = () => {
               return (
                 <div
                   key={policy.id}
-                  onClick={() => handlePolicyClick(policy.id)}
+                  onClick={() => handlePolicyClick(policy.id, policy.insuranceType)}
                   className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-blue-300 overflow-hidden group"
                 >
                   {/* Provider Logo Header */}
@@ -294,11 +303,8 @@ const PolicyBrowsePage: React.FC = () => {
                     </div>
 
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePolicyClick(policy.id);
-                      }}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                      onClick={(e) => handleGetQuote(e, policy.insuranceType || selectedInsuranceType || 'health')}
+                      className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
                     >
                       Get Quote
                     </button>

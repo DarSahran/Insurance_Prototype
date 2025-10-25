@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Check, Shield, Lock, CreditCard, ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Check, Shield, Lock, CreditCard, ArrowLeft, IndianRupee } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { policyMarketplaceService } from '../lib/policyMarketplace';
 import { useHybridAuth } from '../hooks/useHybridAuth';
+import { supabase } from '../lib/supabase';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
 
@@ -136,6 +137,7 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
 const CheckoutPage: React.FC = () => {
   const { policyId } = useParams<{ policyId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useHybridAuth();
 
   const [policyData, setPolicyData] = useState<any>(null);
@@ -149,49 +151,131 @@ const CheckoutPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const storedData = localStorage.getItem('quick_buy_data');
-      if (!storedData) {
-        navigate('/browse-policies');
-        return;
-      }
+      const assessmentState = location.state;
 
-      const parsed = JSON.parse(storedData);
-      setPurchaseData(parsed);
+      if (assessmentState?.assessmentData) {
+        setPurchaseData({
+          insuranceType: assessmentState.insuranceType,
+          assessmentData: assessmentState.assessmentData,
+          policyPeriod: assessmentState.policyPeriod || 1,
+          premium: assessmentState.premium,
+          policyName: assessmentState.policyName,
+        });
 
-      const policy = await policyMarketplaceService.getPolicyById(policyId!);
-      setPolicyData(policy);
+        const pendingAssessment = sessionStorage.getItem('pendingAssessment');
+        if (pendingAssessment && user) {
+          const assessment = JSON.parse(pendingAssessment);
 
-      const totalAmount = policy.annual_premium_base * 1.18;
+          const { data: savedAssessment, error } = await supabase
+            .from('insurance_assessments')
+            .insert({
+              user_id: user.id,
+              insurance_type: assessment.insuranceType,
+              assessment_data: assessment.formData,
+              policy_period: assessment.selectedPolicyPeriod,
+              calculated_premium: assessment.calculatedPremium,
+              status: 'completed'
+            })
+            .select()
+            .single();
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            amount: totalAmount,
-            currency: 'inr',
-            policyData: {
-              id: policy.id,
-              name: policy.policy_name,
-            },
-            customerData: {
-              name: parsed.form_data.full_name,
-              email: parsed.form_data.email,
-            },
-          }),
+          if (!error && savedAssessment) {
+            setPolicyData({
+              id: savedAssessment.id,
+              policy_name: assessmentState.policyName,
+              insurance_type: assessmentState.insuranceType,
+              annual_premium_base: assessmentState.premium,
+              policy_period: assessmentState.policyPeriod,
+            });
+          }
+
+          sessionStorage.removeItem('pendingAssessment');
+        } else {
+          setPolicyData({
+            id: 'temp-' + Date.now(),
+            policy_name: assessmentState.policyName,
+            insurance_type: assessmentState.insuranceType,
+            annual_premium_base: assessmentState.premium,
+            policy_period: assessmentState.policyPeriod,
+          });
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('Failed to create payment intent');
+        const totalAmount = assessmentState.premium * 1.18;
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              amount: Math.round(totalAmount),
+              currency: 'inr',
+              policyData: {
+                id: assessmentState.insuranceType,
+                name: assessmentState.policyName,
+              },
+              customerData: {
+                name: assessmentState.assessmentData?.fullName || 'Customer',
+                email: user?.email || 'customer@example.com',
+              },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to create payment intent');
+        }
+
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+      } else {
+        const storedData = localStorage.getItem('quick_buy_data');
+        if (!storedData) {
+          navigate('/browse-policies');
+          return;
+        }
+
+        const parsed = JSON.parse(storedData);
+        setPurchaseData(parsed);
+
+        const policy = await policyMarketplaceService.getPolicyById(policyId!);
+        setPolicyData(policy);
+
+        const totalAmount = policy.annual_premium_base * 1.18;
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              amount: totalAmount,
+              currency: 'inr',
+              policyData: {
+                id: policy.id,
+                name: policy.policy_name,
+              },
+              customerData: {
+                name: parsed.form_data.full_name,
+                email: parsed.form_data.email,
+              },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to create payment intent');
+        }
+
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
       }
-
-      const data = await response.json();
-      setClientSecret(data.clientSecret);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -268,22 +352,51 @@ const CheckoutPage: React.FC = () => {
                   <div className="font-semibold text-gray-900">{policyData.policy_name}</div>
                 </div>
 
-                <div>
-                  <div className="text-sm text-gray-600">Provider</div>
-                  <div className="font-semibold text-gray-900">{policyData.provider?.provider_name}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-600">Coverage</div>
-                  <div className="font-semibold text-gray-900">
-                    {formatCurrency(parseFloat(purchaseData.form_data.coverage_amount))}
+                {purchaseData.policyPeriod && (
+                  <div>
+                    <div className="text-sm text-gray-600">Policy Period</div>
+                    <div className="font-semibold text-gray-900">
+                      {purchaseData.policyPeriod} {purchaseData.policyPeriod === 1 ? 'Year' : 'Years'}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <div className="text-sm text-gray-600">Policy Holder</div>
-                  <div className="font-semibold text-gray-900">{purchaseData.form_data.full_name}</div>
-                </div>
+                {policyData.provider?.provider_name && (
+                  <div>
+                    <div className="text-sm text-gray-600">Provider</div>
+                    <div className="font-semibold text-gray-900">{policyData.provider.provider_name}</div>
+                  </div>
+                )}
+
+                {purchaseData.assessmentData?.coverageAmount && (
+                  <div>
+                    <div className="text-sm text-gray-600">Coverage</div>
+                    <div className="font-semibold text-gray-900">{purchaseData.assessmentData.coverageAmount}</div>
+                  </div>
+                )}
+
+                {purchaseData.form_data?.coverage_amount && (
+                  <div>
+                    <div className="text-sm text-gray-600">Coverage</div>
+                    <div className="font-semibold text-gray-900">
+                      {formatCurrency(parseFloat(purchaseData.form_data.coverage_amount))}
+                    </div>
+                  </div>
+                )}
+
+                {purchaseData.assessmentData?.fullName && (
+                  <div>
+                    <div className="text-sm text-gray-600">Policy Holder</div>
+                    <div className="font-semibold text-gray-900">{purchaseData.assessmentData.fullName}</div>
+                  </div>
+                )}
+
+                {purchaseData.form_data?.full_name && (
+                  <div>
+                    <div className="text-sm text-gray-600">Policy Holder</div>
+                    <div className="font-semibold text-gray-900">{purchaseData.form_data.full_name}</div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t pt-4 mb-6">
@@ -297,7 +410,10 @@ const CheckoutPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
                   <span>Total Amount</span>
-                  <span className="text-blue-600">{formatCurrency(policyData.annual_premium_base * 1.18)}</span>
+                  <span className="text-green-600 flex items-center">
+                    <IndianRupee className="w-5 h-5" />
+                    {(policyData.annual_premium_base * 1.18).toLocaleString('en-IN')}
+                  </span>
                 </div>
               </div>
 
