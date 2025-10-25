@@ -64,12 +64,17 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user found');
+      return;
+    }
 
     try {
       setLoading(true);
       setSaveStatus('saving');
       setErrorMessage('');
+
+      console.log('Saving profile for user:', user.id);
 
       const address = {
         street: profileData.street,
@@ -79,34 +84,41 @@ const ProfilePage: React.FC = () => {
         country: profileData.country
       };
 
+      const dataToSave = {
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        full_name: `${profileData.firstName} ${profileData.lastName}`.trim(),
+        phone: profileData.phone,
+        date_of_birth: profileData.dateOfBirth || null,
+        gender: profileData.gender || null,
+        occupation: profileData.occupation || null,
+        education_level: profileData.educationLevel || null,
+        address: address,
+        location: profileData.city && profileData.state ? `${profileData.city}, ${profileData.state}` : null
+      };
+
+      console.log('Data to save:', dataToSave);
+
       const updatedProfile = await UserDataService.createOrUpdateProfile(
         user.id,
         profileData.email,
-        {
-          first_name: profileData.firstName,
-          last_name: profileData.lastName,
-          full_name: `${profileData.firstName} ${profileData.lastName}`.trim(),
-          phone: profileData.phone,
-          date_of_birth: profileData.dateOfBirth || null,
-          gender: profileData.gender || null,
-          occupation: profileData.occupation || null,
-          education_level: profileData.educationLevel || null,
-          address: address,
-          location: profileData.city && profileData.state ? `${profileData.city}, ${profileData.state}` : null
-        }
+        dataToSave
       );
+
+      console.log('Updated profile:', updatedProfile);
 
       if (updatedProfile) {
         setSaveStatus('success');
+        console.log('Profile saved successfully, refreshing data...');
         await refreshData();
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else {
-        throw new Error('Failed to save profile');
+        throw new Error('Failed to save profile - no data returned');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving profile:', error);
       setSaveStatus('error');
-      setErrorMessage('Failed to save profile. Please try again.');
+      setErrorMessage(error.message || 'Failed to save profile. Please try again.');
       setTimeout(() => setSaveStatus('idle'), 5000);
     } finally {
       setLoading(false);

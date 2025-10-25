@@ -661,6 +661,61 @@ const DashboardHome: React.FC = () => {
               </div>
             </div>
           )}
+
+          {policies.length > 0 && (
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-sm border border-green-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-900">Coverage Protection</h3>
+                <Shield className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">Insurance Score</span>
+                  <span className="text-lg font-bold text-green-700">
+                    {Math.min(100, Math.round((activePolicies / 3) * 100))}%
+                  </span>
+                </div>
+                <div className="w-full bg-green-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                    style={{ width: `${Math.min(100, Math.round((activePolicies / 3) * 100))}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-600">
+                  You have {activePolicies} active {activePolicies === 1 ? 'policy' : 'policies'}.
+                  {activePolicies < 3 && ' Consider adding more coverage for complete protection.'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-sm border border-blue-200 p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Financial Wellness</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Total Premiums</span>
+                <span className="text-lg font-bold text-blue-900">
+                  {formatCurrency(totalMonthlyPremium * 12)}/year
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Total Coverage</span>
+                <span className="text-lg font-bold text-blue-900">
+                  {formatCurrency(totalCoverage)}
+                </span>
+              </div>
+              <div className="pt-3 border-t border-blue-200">
+                <p className="text-xs text-gray-600">
+                  Your insurance investment protects {formatCurrency(totalCoverage)} in assets
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

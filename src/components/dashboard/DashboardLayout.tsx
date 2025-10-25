@@ -7,10 +7,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationCenter } from './NotificationCenter';
+import InsureBot from '../InsureBot';
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [chatbotMinimized, setChatbotMinimized] = useState(false);
   const location = useLocation();
   const { user, signOut, loading } = useAuth();
 
@@ -200,6 +203,29 @@ const DashboardLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Floating Chatbot Button */}
+      {!chatbotOpen && (
+        <button
+          onClick={() => setChatbotOpen(true)}
+          className="fixed bottom-6 right-6 z-40 w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 flex items-center justify-center group"
+          title="Open InsureBot"
+        >
+          <Sparkles className="w-7 h-7 animate-pulse" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
+        </button>
+      )}
+
+      {/* InsureBot Chatbot */}
+      <InsureBot
+        isOpen={chatbotOpen}
+        onClose={() => {
+          setChatbotOpen(false);
+          setChatbotMinimized(false);
+        }}
+        isMinimized={chatbotMinimized}
+        onToggleMinimize={() => setChatbotMinimized(!chatbotMinimized)}
+      />
     </div>
   );
 };
