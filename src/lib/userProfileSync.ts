@@ -58,6 +58,12 @@ export const ensureUserProfile = async (user: User, provider: 'clerk' | 'supabas
     if (!existingProfile) {
       const { data, error: createError } = await createUserProfile(profileData);
       if (createError) {
+        // If error is duplicate key, fetch the existing profile instead
+        if (createError.code === '23505') {
+          console.log(`Profile already exists for ${provider} user (race condition handled):`, user.email);
+          const { data: retryData } = await getUserProfile(user.id);
+          return { success: true, data: retryData, created: false };
+        }
         console.error(`Error creating user profile for ${provider} user:`, createError);
         return { success: false, error: createError };
       } else {

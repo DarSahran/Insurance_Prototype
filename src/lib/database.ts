@@ -12,11 +12,24 @@ export const createUserProfile = async (userData: {
   last_name?: string
   full_name?: string
 }) => {
+  // First check if profile already exists
+  const { data: existing } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', userData.user_id)
+    .maybeSingle()
+
+  // If exists, return it instead of creating duplicate
+  if (existing) {
+    return { data: existing, error: null }
+  }
+
+  // Create new profile
   const { data, error } = await supabase
     .from('user_profiles')
     .insert(userData)
     .select()
-    .single()
+    .maybeSingle()
 
   return { data, error }
 }
@@ -26,7 +39,7 @@ export const getUserProfile = async (userId: string) => {
     .from('user_profiles')
     .select('*')
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
 
   return { data, error }
 }
@@ -37,7 +50,7 @@ export const updateUserProfile = async (userId: string, updates: Partial<UserPro
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('user_id', userId)
     .select()
-    .single()
+    .maybeSingle()
 
   return { data, error }
 }
