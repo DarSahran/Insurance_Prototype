@@ -134,6 +134,8 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
   const handleNext = async () => {
     if (currentStep < 5 && validateStep(currentStep)) {
       setCurrentStep(prev => prev + 1);
+      // Scroll to top smoothly when moving to next step
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 4) {
       // Start AI processing
       setCurrentStep(5);
@@ -289,6 +291,8 @@ const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, o
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
+      // Scroll to top smoothly when going back
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
