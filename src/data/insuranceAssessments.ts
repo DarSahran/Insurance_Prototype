@@ -474,6 +474,135 @@ export const insuranceAssessments: Record<string, InsuranceAssessment> = {
         }
       ]
     }
+  },
+
+  'family_health': {
+    name: 'Family Health Insurance',
+    type: 'family_health',
+    tagline: 'Complete family protection',
+    icon: 'Users',
+    basePrice: 1200,
+    pricePerYear: { 1: 1200, 2: 2280, 3: 3240, 4: 4080 },
+    assessment: {
+      flow: [
+        {
+          step: 1,
+          title: 'Personal Details',
+          fields: [
+            { type: 'text', label: 'Full Name', name: 'fullName', required: true },
+            { type: 'text', label: 'Mobile Number', name: 'mobile', required: true }
+          ]
+        },
+        {
+          step: 2,
+          title: 'Family Members',
+          fields: [
+            { type: 'multiselect', label: 'Select family members to insure', name: 'members', options: ['Self', 'Spouse', 'Son 1', 'Son 2', 'Daughter 1', 'Daughter 2', 'Father', 'Mother'], required: true }
+          ]
+        },
+        {
+          step: 3,
+          title: 'Age Details',
+          fields: [
+            { type: 'number', label: 'Your age', name: 'selfAge', required: true },
+            { type: 'number', label: 'Spouse age (if applicable)', name: 'spouseAge', required: false }
+          ]
+        },
+        {
+          step: 4,
+          title: 'Location',
+          fields: [
+            { type: 'text', label: 'Select your city', name: 'city', required: true }
+          ]
+        },
+        {
+          step: 5,
+          title: 'Medical History',
+          fields: [
+            { type: 'multiselect', label: 'Any existing illnesses in family?', name: 'existingIllness', options: ['Diabetes', 'Hypertension', 'Heart Disease', 'Asthma', 'Thyroid', 'None'], required: true }
+          ]
+        },
+        {
+          step: 6,
+          title: 'Coverage Amount',
+          fields: [
+            { type: 'radio', label: 'Select sum insured', name: 'coverageAmount', options: ['₹5 Lakhs', '₹10 Lakhs', '₹15 Lakhs', '₹25 Lakhs', '₹50 Lakhs'], required: true }
+          ]
+        },
+        {
+          step: 7,
+          title: 'Policy Duration',
+          fields: [
+            { type: 'radio', label: 'Select policy period', name: 'policyPeriod', options: ['1 Year', '2 Years', '3 Years', '4 Years'], required: true }
+          ]
+        }
+      ]
+    }
+  },
+
+  'term_rop': {
+    name: 'Term Life with Return of Premium',
+    type: 'term_rop',
+    tagline: 'Term life with returns',
+    icon: 'Shield',
+    basePrice: 1000,
+    pricePerYear: { 1: 1000, 2: 1900, 3: 2700, 4: 3400 },
+    assessment: {
+      flow: [
+        {
+          step: 1,
+          title: 'Personal Details',
+          fields: [
+            { type: 'radio', label: 'Gender', name: 'gender', options: ['Male', 'Female', 'Other'], required: true },
+            { type: 'text', label: 'Full Name', name: 'fullName', required: true },
+            { type: 'date', label: 'Date of Birth', name: 'dob', required: true },
+            { type: 'text', label: 'Mobile Number', name: 'mobile', required: true, placeholder: '+91' }
+          ]
+        },
+        {
+          step: 2,
+          title: 'Occupation Type',
+          fields: [
+            { type: 'radio', label: 'Select your occupation', name: 'occupation', options: ['Salaried', 'Self Employed', 'Housewife', 'Professional'], required: true }
+          ]
+        },
+        {
+          step: 3,
+          title: 'Annual Income',
+          fields: [
+            { type: 'radio', label: 'What is your annual income?', name: 'annualIncome', options: ['Below ₹5L', '₹5L-10L', '₹10L-25L', '₹25L+'], required: true }
+          ]
+        },
+        {
+          step: 4,
+          title: 'Coverage Amount',
+          fields: [
+            { type: 'radio', label: 'Select sum assured', name: 'coverageAmount', options: ['₹25 Lakhs', '₹50 Lakhs', '₹75 Lakhs', '₹1 Crore', '₹2 Crore'], required: true }
+          ]
+        },
+        {
+          step: 5,
+          title: 'Tobacco Usage',
+          fields: [
+            { type: 'radio', label: 'Do you smoke or chew tobacco?', name: 'tobacco', options: ['Yes', 'No'], required: true }
+          ]
+        },
+        {
+          step: 6,
+          title: 'Location',
+          fields: [
+            { type: 'text', label: 'Please select your current city', name: 'city', required: true }
+          ]
+        },
+        {
+          step: 7,
+          title: 'Policy Duration',
+          fields: [
+            { type: 'radio', label: 'Select policy period', name: 'policyPeriod', options: ['1 Year', '2 Years', '3 Years', '4 Years'], required: true }
+          ]
+        }
+      ]
+    }
   }
 };
 

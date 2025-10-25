@@ -38,9 +38,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const amountInPaise = currency === 'inr' ? Math.round(amount * 100) : Math.round(amount * 100);
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
-      currency: currency,
+      amount: amountInPaise,
+      currency: currency.toLowerCase(),
       automatic_payment_methods: {
         enabled: true,
       },

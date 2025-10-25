@@ -41,7 +41,7 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
         elements,
         clientSecret,
         confirmParams: {
-          return_url: window.location.origin + '/payment-processing',
+          return_url: `${window.location.origin}/payment-processing`,
         },
         redirect: 'if_required',
       });
@@ -53,35 +53,78 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
       }
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        const policyNumber = policyMarketplaceService.generatePolicyNumber(policyData.policy_type);
+        try {
+          const policyType = policyData.insurance_type || policyData.policy_type || 'health';
+          const policyNumber = policyMarketplaceService.generatePolicyNumber(policyType);
 
-        const quickPolicy = await policyMarketplaceService.createQuickPolicy({
-          policy_number: policyNumber,
-          user_id: user?.id || 'guest',
-          catalog_policy_id: policyData.id,
-          policy_type: policyData.policy_type,
-          provider_id: policyData.provider_id,
-          customer_name: purchaseData.form_data.full_name,
-          customer_email: purchaseData.form_data.email,
-          customer_phone: purchaseData.form_data.phone,
-          customer_dob: purchaseData.form_data.dob ? new Date(purchaseData.form_data.dob) : undefined,
-          customer_gender: purchaseData.form_data.gender,
-          coverage_amount: parseFloat(purchaseData.form_data.coverage_amount),
-          monthly_premium: policyData.monthly_premium_base,
-          annual_premium: policyData.annual_premium_base,
-          policy_term_years: policyData.policy_term_years,
-          effective_date: new Date(),
-          expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + policyData.policy_term_years)),
-          quick_form_data: purchaseData.form_data,
-          purchase_source: 'quick_buy',
-          payment_id: paymentIntent.id,
-          payment_status: 'completed',
-          amount_paid: policyData.annual_premium_base * 1.18,
-          status: 'active',
-        });
+          let quickPolicyData;
 
-        localStorage.removeItem('quick_buy_data');
-        navigate(`/purchase-success/${quickPolicy.id}`);
+          if (purchaseData.assessmentData) {
+            quickPolicyData = {
+              policy_number: policyNumber,
+              user_id: user?.id || 'guest',
+              catalog_policy_id: policyData.id,
+              policy_type: policyType,
+              provider_id: policyData.provider_id,
+              customer_name: purchaseData.assessmentData.fullName || 'Customer',
+              customer_email: user?.email || 'customer@example.com',
+              customer_phone: purchaseData.assessmentData.mobile || purchaseData.assessmentData.phone || '',
+              customer_dob: purchaseData.assessmentData.dob ? new Date(purchaseData.assessmentData.dob) : undefined,
+              customer_gender: purchaseData.assessmentData.gender,
+              coverage_amount: 500000,
+              monthly_premium: Math.round(purchaseData.premium / 12),
+              annual_premium: purchaseData.premium,
+              policy_term_years: purchaseData.policyPeriod || 1,
+              effective_date: new Date(),
+              expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + (purchaseData.policyPeriod || 1))),
+              quick_form_data: purchaseData.assessmentData,
+              purchase_source: 'assessment',
+              payment_id: paymentIntent.id,
+              payment_status: 'completed' as const,
+              amount_paid: purchaseData.premium * 1.18,
+              status: 'active' as const,
+            };
+          } else {
+            quickPolicyData = {
+              policy_number: policyNumber,
+              user_id: user?.id || 'guest',
+              catalog_policy_id: policyData.id,
+              policy_type: policyType,
+              provider_id: policyData.provider_id,
+              customer_name: purchaseData.form_data.full_name,
+              customer_email: purchaseData.form_data.email,
+              customer_phone: purchaseData.form_data.phone,
+              customer_dob: purchaseData.form_data.dob ? new Date(purchaseData.form_data.dob) : undefined,
+              customer_gender: purchaseData.form_data.gender,
+              coverage_amount: parseFloat(purchaseData.form_data.coverage_amount),
+              monthly_premium: policyData.monthly_premium_base,
+              annual_premium: policyData.annual_premium_base,
+              policy_term_years: policyData.policy_term_years,
+              effective_date: new Date(),
+              expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + policyData.policy_term_years)),
+              quick_form_data: purchaseData.form_data,
+              purchase_source: 'quick_buy',
+              payment_id: paymentIntent.id,
+              payment_status: 'completed' as const,
+              amount_paid: policyData.annual_premium_base * 1.18,
+              status: 'active' as const,
+            };
+          }
+
+          const quickPolicy = await policyMarketplaceService.createQuickPolicy(quickPolicyData);
+
+          localStorage.removeItem('quick_buy_data');
+          sessionStorage.removeItem('pendingAssessment');
+
+          navigate(`/purchase-success/${quickPolicy.id}`, { replace: true });
+        } catch (err: any) {
+          console.error('Error creating policy after payment:', err);
+          setError('Payment succeeded but policy creation failed. Please contact support with payment ID: ' + paymentIntent.id);
+          setProcessing(false);
+        }
+      } else {
+        setError('Payment processing incomplete. Please try again.');
+        setProcessing(false);
       }
     } catch (err: any) {
       console.error('Payment error:', err);
