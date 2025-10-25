@@ -64,7 +64,14 @@ const DashboardHome: React.FC = () => {
     return 'Good Evening';
   };
 
-  const hasCompletedProfile = userData?.profile && userData.profile.first_name;
+  // Check if profile has essential information filled out
+  const hasCompletedProfile = userData?.profile && (
+    userData.profile.first_name ||
+    userData.profile.date_of_birth ||
+    userData.profile.gender ||
+    userData.profile.occupation ||
+    userData.profile.education_level
+  );
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { color: string; icon: React.ReactNode }> = {
