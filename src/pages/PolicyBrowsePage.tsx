@@ -106,17 +106,15 @@ const PolicyBrowsePage: React.FC = () => {
     navigate(`/browse-policies?type=${typeId}`);
   };
 
-  const handlePolicyClick = (policyId: string, insuranceType?: string) => {
-    if (insuranceType) {
-      navigate(`/assessment/${insuranceType}?policyId=${policyId}`);
-    } else {
-      navigate(`/policy/${policyId}`);
-    }
+  const handlePolicyClick = (policyId: string) => {
+    navigate(`/policy/${policyId}`);
   };
 
   const handleGetQuote = (e: React.MouseEvent, insuranceType: string) => {
     e.stopPropagation();
-    navigate(`/assessment/${insuranceType}`);
+    // Convert database format (term_life) to assessment format (term-life)
+    const assessmentType = insuranceType.replace(/_/g, '-');
+    navigate(`/assessment/${assessmentType}`);
   };
 
 
@@ -225,7 +223,7 @@ const PolicyBrowsePage: React.FC = () => {
               return (
                 <div
                   key={policy.id}
-                  onClick={() => handlePolicyClick(policy.id, policy.policyType)}
+                  onClick={() => handlePolicyClick(policy.id)}
                   className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-blue-300 overflow-hidden group"
                 >
                   {/* Provider Logo Header */}

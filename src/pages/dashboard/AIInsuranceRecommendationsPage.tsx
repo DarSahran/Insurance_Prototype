@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Brain, Shield, TrendingUp, DollarSign, CheckCircle, AlertCircle,
   Sparkles, MessageCircle, RefreshCw, Download, Loader, Target,
@@ -381,14 +382,37 @@ const AIInsuranceRecommendationsPage: React.FC = () => {
 };
 
 const PolicyCard: React.FC<{ policy: InsuranceRecommendation }> = ({ policy }) => {
+  const navigate = useNavigate();
+
   const priorityColors = {
     high: 'bg-green-100 text-green-800 border-green-200',
     medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     low: 'bg-gray-100 text-gray-800 border-gray-200'
   };
 
+  const handleGetQuote = () => {
+    // Map policy type to the correct format for navigation
+    const policyTypeMap: Record<string, string> = {
+      'Life Insurance': 'term_life',
+      'Term Life Insurance': 'term_life',
+      'Health Insurance': 'health',
+      'Family Health Insurance': 'family_health',
+      'Car Insurance': 'car',
+      'Two Wheeler Insurance': 'two_wheeler',
+      'Travel Insurance': 'travel',
+      'Home Insurance': 'home',
+      'Investment Plans': 'investment',
+      'Retirement Plans': 'retirement'
+    };
+
+    const insuranceType = policyTypeMap[policy.policyType] || policy.policyType.toLowerCase().replace(/\s+/g, '_');
+
+    // Navigate to browse policies filtered by type
+    navigate(`/browse-policies?type=${insuranceType}`);
+  };
+
   return (
-    <div className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+    <div className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={handleGetQuote}>
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-lg font-semibold text-gray-900">{policy.policyType}</h3>
         <span className={`px-3 py-1 text-xs font-medium rounded-full border ${priorityColors[policy.priority]}`}>
@@ -426,8 +450,14 @@ const PolicyCard: React.FC<{ policy: InsuranceRecommendation }> = ({ policy }) =
         <p className="text-xs text-gray-600 italic">{policy.reasoning}</p>
       </div>
 
-      <button className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-        Get Quote
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleGetQuote();
+        }}
+        className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+      >
+        Browse Policies
       </button>
     </div>
   );

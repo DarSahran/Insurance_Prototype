@@ -33,12 +33,11 @@ const PolicyDetailsPage: React.FC = () => {
   };
 
   const handleBuyNow = () => {
-    if (!user) {
-      localStorage.setItem('redirectAfterAuth', `/policy/${policyId}/buy`);
-      navigate('/signup');
-    } else {
-      navigate(`/policy/${policyId}/buy`);
-    }
+    // Navigate to assessment for the policy's insurance type
+    // Convert database format (term_life) to assessment format (term-life)
+    let insuranceType = policy?.policy_type || policy?.policyType || 'health';
+    insuranceType = insuranceType.replace(/_/g, '-');
+    navigate(`/assessment/${insuranceType}`);
   };
 
   const handleSavePolicy = async () => {
@@ -287,14 +286,7 @@ const PolicyDetailsPage: React.FC = () => {
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl mb-3"
               >
                 <ShoppingCart className="w-5 h-5 inline mr-2" />
-                Buy Now
-              </button>
-
-              <button
-                onClick={() => navigate(`/policy/${policyId}/compare`)}
-                className="w-full border-2 border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-all"
-              >
-                Compare Policies
+                Get Quote
               </button>
 
               <div className="mt-6 pt-6 border-t space-y-3">
