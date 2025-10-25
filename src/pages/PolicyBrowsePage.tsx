@@ -112,7 +112,9 @@ const PolicyBrowsePage: React.FC = () => {
 
   const handleGetQuote = (e: React.MouseEvent, insuranceType: string) => {
     e.stopPropagation();
-    navigate(`/assessment/${insuranceType}`);
+    // Convert database format (term_life) to assessment format (term-life)
+    const assessmentType = insuranceType.replace(/_/g, '-');
+    navigate(`/assessment/${assessmentType}`);
   };
 
 

@@ -34,7 +34,9 @@ const PolicyDetailsPage: React.FC = () => {
 
   const handleBuyNow = () => {
     // Navigate to assessment for the policy's insurance type
-    const insuranceType = policy?.policy_type || policy?.policyType || 'health';
+    // Convert database format (term_life) to assessment format (term-life)
+    let insuranceType = policy?.policy_type || policy?.policyType || 'health';
+    insuranceType = insuranceType.replace(/_/g, '-');
     navigate(`/assessment/${insuranceType}`);
   };
 
