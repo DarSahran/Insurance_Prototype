@@ -6,11 +6,11 @@ import { getCompanyLogo, formatINR, formatPremiumINR } from '../lib/insuranceCom
 import { useHybridAuth } from '../hooks/useHybridAuth';
 
 const INSURANCE_TYPES = [
-  { id: 'term-life', name: 'Term Life', icon: Shield, color: 'blue', description: 'Secure your family\'s future' },
+  { id: 'term_life', name: 'Term Life', icon: Shield, color: 'blue', description: 'Secure your family\'s future' },
   { id: 'health', name: 'Health', icon: Heart, color: 'red', description: 'Comprehensive health coverage' },
   { id: 'family_health', name: 'Family Health', icon: Users, color: 'green', description: 'Complete family protection' },
   { id: 'car', name: 'Car Insurance', icon: Car, color: 'cyan', description: 'Protect your vehicle' },
-  { id: 'two-wheeler', name: 'Two Wheeler', icon: Bike, color: 'orange', description: 'Bike insurance coverage' },
+  { id: 'two_wheeler', name: 'Two Wheeler', icon: Bike, color: 'orange', description: 'Bike insurance coverage' },
   { id: 'investment', name: 'Investment', icon: TrendingUp, color: 'teal', description: 'Grow your wealth' },
   { id: 'travel', name: 'Travel', icon: Plane, color: 'sky', description: 'Safe journeys worldwide' },
   { id: 'retirement', name: 'Retirement', icon: PiggyBank, color: 'emerald', description: 'Plan your golden years' },
