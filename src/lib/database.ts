@@ -12,17 +12,27 @@ export const createUserProfile = async (userData: {
   last_name?: string
   full_name?: string
 }) => {
+  console.log('💾 createUserProfile called with:', userData);
+
   // First check if profile already exists
-  const { data: existing } = await supabase
+  console.log('🔍 Checking if profile exists for user_id:', userData.user_id);
+  const { data: existing, error: checkError } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', userData.user_id)
     .maybeSingle()
 
+  if (checkError) {
+    console.error('❌ Error checking for existing profile:', checkError);
+  }
+
   // If exists, return it instead of creating duplicate
   if (existing) {
+    console.log('✅ Profile already exists, returning existing:', existing.id);
     return { data: existing, error: null }
   }
+
+  console.log('📝 No existing profile found, creating new one...');
 
   // Create new profile
   const { data, error } = await supabase
@@ -30,6 +40,17 @@ export const createUserProfile = async (userData: {
     .insert(userData)
     .select()
     .maybeSingle()
+
+  if (error) {
+    console.error('❌ Error creating profile:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Error details:', error.details);
+  } else {
+    console.log('✅✅ PROFILE CREATED IN DATABASE!');
+    console.log('Profile ID:', data?.id);
+    console.log('Profile data:', data);
+  }
 
   return { data, error }
 }

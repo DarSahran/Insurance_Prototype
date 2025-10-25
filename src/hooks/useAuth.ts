@@ -29,6 +29,10 @@ export const useAuth = () => {
   }, [])
 
   const signUp = async (email: string, password: string, userData: any) => {
+    console.log('🔧 useAuth.signUp called');
+    console.log('📧 Email:', email);
+    console.log('📝 User data:', userData);
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -37,31 +41,62 @@ export const useAuth = () => {
       }
     })
 
+    console.log('📬 Supabase auth.signUp response:', { data, error });
+
+    if (error) {
+      console.error('❌ Supabase signup error:', error);
+      return { data, error };
+    }
+
     // If signup is successful, create user profile
-    if (data.user && !error) {
+    if (data.user) {
+      console.log('✅ User created in Supabase Auth:', data.user.id);
+      console.log('📝 Creating user profile in database...');
+
       const profileData = {
         user_id: data.user.id,
         email: email,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        full_name: userData.full_name,
+        first_name: userData.first_name || '',
+        last_name: userData.last_name || '',
+        full_name: userData.full_name || '',
       }
-      
-      const { error: profileError } = await createUserProfile(profileData)
-      
+
+      console.log('📤 Profile data to create:', profileData);
+
+      const { data: profileResult, error: profileError } = await createUserProfile(profileData)
+
       if (profileError) {
-        console.error('Error creating user profile:', profileError)
+        console.error('❌ Error creating user profile:', profileError);
+        console.error('Profile error code:', profileError.code);
+        console.error('Profile error details:', profileError.details);
+      } else {
+        console.log('✅✅ USER PROFILE CREATED SUCCESSFULLY!');
+        console.log('Profile data:', profileResult);
       }
+    } else {
+      console.log('⚠️ No user object in signup response');
     }
 
     return { data, error }
   }
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔧 useAuth.signIn called');
+    console.log('📧 Email:', email);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
+
+    console.log('📬 Supabase signIn response:', { data, error });
+
+    if (error) {
+      console.error('❌ Login error:', error);
+    } else if (data.user) {
+      console.log('✅ Login successful, user:', data.user.id);
+    }
+
     return { data, error }
   }
 

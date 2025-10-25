@@ -44,8 +44,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, 
     setLoading(true)
     setMessage(null)
 
+    console.log('🔐 LOGIN STARTED');
+    console.log('📧 Email:', formData.email);
+
     const { data, error } = await signIn(formData.email, formData.password)
+
     if (error) {
+      console.error('❌❌ LOGIN FAILED:', error);
+      console.error('Error message:', error.message);
+      console.error('Error code:', error.code);
+
       if (error.message.includes('Invalid login credentials')) {
         setMessage({ type: 'error', text: 'Incorrect email or password.' });
       } else if (error.message.includes('Email not confirmed')) {
@@ -54,15 +62,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToSignup, 
         setMessage({ type: 'error', text: error.message });
       }
     } else {
-      setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-      // Store user info in localStorage
+      console.log('✅✅ LOGIN SUCCESSFUL!');
+      console.log('Login data:', data);
+
       if (data?.user) {
+        console.log('👤 User ID:', data.user.id);
+        console.log('📧 User Email:', data.user.email);
         localStorage.setItem('user', JSON.stringify(data.user));
       }
-      // Add a longer delay to ensure auth state is properly updated
+
+      setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+      console.log('🔀 Redirecting in 2 seconds...');
       setTimeout(() => onLoginSuccess(), 2000);
     }
     setLoading(false)
+    console.log('🏁 LOGIN FLOW COMPLETED');
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
