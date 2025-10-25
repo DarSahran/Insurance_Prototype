@@ -171,8 +171,12 @@ export class UserDataService {
 
   static async getUserPolicies(userId: string): Promise<any[]> {
     const { data, error } = await supabase
-      .from('policies')
-      .select('*')
+      .from('quick_policies')
+      .select(`
+        *,
+        catalog_policy:policy_catalog(*),
+        provider:policy_providers(*)
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, Download, Mail, Phone, Home, FileText } from 'lucide-react';
+import { CheckCircle, Download, Mail, Phone, Home, FileText, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { motion } from 'framer-motion';
 
 const PurchaseSuccessPage: React.FC = () => {
   const { policyId } = useParams<{ policyId: string }>();
@@ -64,18 +65,81 @@ const PurchaseSuccessPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 py-12 overflow-hidden relative">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute"
+            initial={{
+              top: '-10%',
+              left: `${Math.random() * 100}%`,
+              opacity: 0.8
+            }}
+            animate={{
+              top: '110%',
+              opacity: 0
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              delay: Math.random() * 2,
+              repeat: Infinity,
+              repeatDelay: Math.random() * 3
+            }}
+          >
+            <Sparkles className="w-6 h-6 text-yellow-400" style={{ transform: `rotate(${Math.random() * 360}deg)` }} />
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white rounded-2xl shadow-2xl p-8 mb-8"
+        >
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-              <CheckCircle className="w-12 h-12 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-            <p className="text-xl text-gray-600">Your policy is now active</p>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                delay: 0.2
+              }}
+              className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full mb-4 shadow-lg"
+            >
+              <CheckCircle className="w-16 h-16 text-white" strokeWidth={2.5} />
+            </motion.div>
+
+            <motion.h1
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2"
+            >
+              Payment Successful! 🎉
+            </motion.h1>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-xl text-gray-600"
+            >
+              Your policy is now active and protecting you
+            </motion.p>
           </div>
 
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-6 mb-8"
+          >
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <div className="text-sm text-gray-600 mb-1">Policy Number</div>
@@ -96,9 +160,14 @@ const PurchaseSuccessPage: React.FC = () => {
                 <div className="font-semibold text-gray-900">{formatCurrency(policyData.coverage_amount)}</div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="space-y-4 mb-8">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="space-y-4 mb-8"
+          >
             <h3 className="font-bold text-gray-900">Policy Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -118,9 +187,14 @@ const PurchaseSuccessPage: React.FC = () => {
                 <div className="font-semibold">{policyData.policy_term_years} years</div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8"
+          >
             <div className="flex items-start gap-3">
               <Mail className="w-5 h-5 text-yellow-600 mt-0.5" />
               <div>
@@ -131,9 +205,14 @@ const PurchaseSuccessPage: React.FC = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
+          >
             <button className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all">
               <Download className="w-5 h-5" />
               Download Policy
@@ -142,9 +221,14 @@ const PurchaseSuccessPage: React.FC = () => {
               <FileText className="w-5 h-5" />
               View Details
             </button>
-          </div>
+          </motion.div>
 
-          <div className="border-t pt-6">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            className="border-t pt-6"
+          >
             <h4 className="font-semibold text-gray-900 mb-4">What's Next?</h4>
             <div className="space-y-3 text-sm text-gray-600">
               <div className="flex items-start gap-3">
@@ -175,10 +259,15 @@ const PurchaseSuccessPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
           <button
             onClick={() => navigate('/dashboard')}
             className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
@@ -199,7 +288,7 @@ const PurchaseSuccessPage: React.FC = () => {
             <Phone className="w-5 h-5" />
             Contact Support
           </a>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

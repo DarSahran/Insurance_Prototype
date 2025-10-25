@@ -64,12 +64,20 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
                                  purchaseData.assessmentData.phone ||
                                  '0000000000';
 
+            // Only use catalog_policy_id if it's a valid UUID, otherwise set to null
+            const isValidUUID = (str: string) => {
+              const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+              return uuidRegex.test(str);
+            };
+
+            const catalogPolicyId = policyData.id && isValidUUID(policyData.id) ? policyData.id : null;
+
             quickPolicyData = {
               policy_number: policyNumber,
               user_id: user?.id || 'guest',
-              catalog_policy_id: policyData.id || null,
+              catalog_policy_id: catalogPolicyId,
               policy_type: policyType,
-              provider_id: policyData.provider_id || null,
+              provider_id: null, // Will be null for assessment-based purchases
               customer_name: purchaseData.assessmentData.fullName || 'Customer',
               customer_email: user?.email || 'customer@example.com',
               customer_phone: customerPhone,
@@ -89,28 +97,35 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
               status: 'active' as const,
             };
           } else {
+            // Helper function to validate UUID
+            const isValidUUID = (str: string) => {
+              if (!str) return false;
+              const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+              return uuidRegex.test(str);
+            };
+
             quickPolicyData = {
               policy_number: policyNumber,
               user_id: user?.id || 'guest',
-              catalog_policy_id: policyData.id,
+              catalog_policy_id: isValidUUID(policyData.id) ? policyData.id : null,
               policy_type: policyType,
-              provider_id: policyData.provider_id,
-              customer_name: purchaseData.form_data.full_name,
-              customer_email: purchaseData.form_data.email,
-              customer_phone: purchaseData.form_data.phone,
+              provider_id: isValidUUID(policyData.provider_id) ? policyData.provider_id : null,
+              customer_name: purchaseData.form_data.full_name || 'Customer',
+              customer_email: purchaseData.form_data.email || user?.email || 'customer@example.com',
+              customer_phone: purchaseData.form_data.phone || '0000000000',
               customer_dob: purchaseData.form_data.dob ? new Date(purchaseData.form_data.dob) : undefined,
-              customer_gender: purchaseData.form_data.gender,
-              coverage_amount: parseFloat(purchaseData.form_data.coverage_amount),
-              monthly_premium: policyData.monthly_premium_base,
-              annual_premium: policyData.annual_premium_base,
-              policy_term_years: policyData.policy_term_years,
+              customer_gender: purchaseData.form_data.gender || 'Not specified',
+              coverage_amount: parseFloat(purchaseData.form_data.coverage_amount) || 500000,
+              monthly_premium: policyData.monthly_premium_base || Math.round((policyData.annual_premium_base || 10000) / 12),
+              annual_premium: policyData.annual_premium_base || 10000,
+              policy_term_years: policyData.policy_term_years || 1,
               effective_date: new Date(),
-              expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + policyData.policy_term_years)),
+              expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + (policyData.policy_term_years || 1))),
               quick_form_data: purchaseData.form_data,
               purchase_source: 'quick_buy',
               payment_id: paymentIntent.id,
               payment_status: 'completed' as const,
-              amount_paid: policyData.annual_premium_base * 1.18,
+              amount_paid: (policyData.annual_premium_base || 10000) * 1.18,
               status: 'active' as const,
             };
           }

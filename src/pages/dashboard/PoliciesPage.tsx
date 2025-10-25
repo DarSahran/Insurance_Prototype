@@ -15,9 +15,9 @@ const PoliciesPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState('All');
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
@@ -71,9 +71,7 @@ const PoliciesPage: React.FC = () => {
   const totalMonthlyPremium = policies
     .filter(p => p.status === 'active')
     .reduce((sum, p) => {
-      if (p.premium_frequency === 'monthly') return sum + p.premium_amount;
-      if (p.premium_frequency === 'annual') return sum + (p.premium_amount / 12);
-      return sum + p.premium_amount;
+      return sum + (p.monthly_premium || 0);
     }, 0);
 
   if (loading) {
@@ -285,8 +283,8 @@ const PoliciesPage: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Premium</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {formatCurrency(policy.premium_amount)}
-                        <span className="text-sm text-gray-500">/{policy.premium_frequency}</span>
+                        {formatCurrency(policy.annual_premium || 0)}
+                        <span className="text-sm text-gray-500">/year</span>
                       </p>
                     </div>
                   </div>
@@ -352,8 +350,8 @@ const PoliciesPage: React.FC = () => {
                         {policy.coverage_amount ? formatCurrency(policy.coverage_amount) : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(policy.premium_amount)}
-                        <span className="text-gray-500">/{policy.premium_frequency}</span>
+                        {formatCurrency(policy.annual_premium || 0)}
+                        <span className="text-gray-500">/year</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {daysToRenewal !== null && daysToRenewal > 0 ? `${daysToRenewal} days` : 'N/A'}
