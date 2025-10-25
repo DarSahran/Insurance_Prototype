@@ -1,232 +1,102 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Search, MapPin, Phone, Star, Filter, X, Navigation, Clock,
-  CheckCircle, Globe, Users, Award, Calendar, ChevronRight, Building2
+  Search, MapPin, Phone, Star, Filter, X, Globe,
+  CheckCircle, Award, Calendar, ChevronRight, Building2,
+  Clock, Mail, Shield, BookOpen, Briefcase, GraduationCap,
+  Trophy, DollarSign, Languages, Users
 } from 'lucide-react';
-
-interface Provider {
-  id: string;
-  npiNumber: string;
-  providerType: string;
-  name: string;
-  specialty: string[];
-  credentials: string[];
-  practiceName: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-  };
-  phone: string;
-  email?: string;
-  website?: string;
-  acceptingNewPatients: boolean;
-  languagesSpoken: string[];
-  averageRating: number;
-  totalReviews: number;
-  insuranceAccepted: string[];
-  telehealthAvailable: boolean;
-  boardCertified: boolean;
-  yearsInPractice: number;
-  distance?: number;
-}
-
-const mockProviders: Provider[] = [
-  {
-    id: '1',
-    npiNumber: '1234567890',
-    providerType: 'physician',
-    name: 'Dr. Sarah Johnson',
-    specialty: ['Family Medicine', 'Primary Care'],
-    credentials: ['MD', 'FAAFP'],
-    practiceName: 'Johnson Family Practice',
-    address: {
-      street: '123 Main St',
-      city: 'San Francisco',
-      state: 'CA',
-      zip: '94102',
-    },
-    phone: '(555) 123-4567',
-    email: 'contact@johnsonfp.com',
-    website: 'https://johnsonfp.com',
-    acceptingNewPatients: true,
-    languagesSpoken: ['English', 'Spanish'],
-    averageRating: 4.8,
-    totalReviews: 245,
-    insuranceAccepted: ['Blue Cross', 'Aetna', 'United Healthcare', 'Medicare'],
-    telehealthAvailable: true,
-    boardCertified: true,
-    yearsInPractice: 15,
-    distance: 2.3,
-  },
-  {
-    id: '2',
-    npiNumber: '2345678901',
-    providerType: 'specialist',
-    name: 'Dr. Michael Chen',
-    specialty: ['Cardiology'],
-    credentials: ['MD', 'FACC'],
-    practiceName: 'Heart Health Specialists',
-    address: {
-      street: '456 Medical Plaza',
-      city: 'San Francisco',
-      state: 'CA',
-      zip: '94103',
-    },
-    phone: '(555) 234-5678',
-    email: 'info@hearthealth.com',
-    website: 'https://hearthealth.com',
-    acceptingNewPatients: true,
-    languagesSpoken: ['English', 'Mandarin', 'Cantonese'],
-    averageRating: 4.9,
-    totalReviews: 189,
-    insuranceAccepted: ['Blue Cross', 'Cigna', 'United Healthcare'],
-    telehealthAvailable: false,
-    boardCertified: true,
-    yearsInPractice: 20,
-    distance: 3.7,
-  },
-  {
-    id: '3',
-    npiNumber: '3456789012',
-    providerType: 'specialist',
-    name: 'Dr. Emily Rodriguez',
-    specialty: ['Endocrinology', 'Diabetes Care'],
-    credentials: ['MD', 'FACE'],
-    practiceName: 'Diabetes & Hormone Center',
-    address: {
-      street: '789 Health Blvd',
-      city: 'Oakland',
-      state: 'CA',
-      zip: '94601',
-    },
-    phone: '(555) 345-6789',
-    email: 'care@diabeteshormone.com',
-    website: 'https://diabeteshormone.com',
-    acceptingNewPatients: true,
-    languagesSpoken: ['English', 'Spanish', 'Portuguese'],
-    averageRating: 4.7,
-    totalReviews: 167,
-    insuranceAccepted: ['Aetna', 'Kaiser', 'United Healthcare'],
-    telehealthAvailable: true,
-    boardCertified: true,
-    yearsInPractice: 12,
-    distance: 8.2,
-  },
-  {
-    id: '4',
-    npiNumber: '4567890123',
-    providerType: 'mental_health',
-    name: 'Dr. David Kim',
-    specialty: ['Psychiatry', 'Therapy'],
-    credentials: ['MD', 'Psychiatrist'],
-    practiceName: 'Mind & Wellness Clinic',
-    address: {
-      street: '321 Wellness Way',
-      city: 'Berkeley',
-      state: 'CA',
-      zip: '94704',
-    },
-    phone: '(555) 456-7890',
-    email: 'support@mindwellness.com',
-    website: 'https://mindwellness.com',
-    acceptingNewPatients: true,
-    languagesSpoken: ['English', 'Korean'],
-    averageRating: 4.6,
-    totalReviews: 134,
-    insuranceAccepted: ['Blue Cross', 'Aetna', 'Cigna'],
-    telehealthAvailable: true,
-    boardCertified: true,
-    yearsInPractice: 10,
-    distance: 5.1,
-  },
-  {
-    id: '5',
-    npiNumber: '5678901234',
-    providerType: 'urgent_care',
-    name: 'QuickCare Urgent Care',
-    specialty: ['Urgent Care', 'Primary Care'],
-    credentials: ['Multi-Specialty'],
-    practiceName: 'QuickCare Medical',
-    address: {
-      street: '555 Emergency Dr',
-      city: 'San Jose',
-      state: 'CA',
-      zip: '95110',
-    },
-    phone: '(555) 567-8901',
-    website: 'https://quickcare.com',
-    acceptingNewPatients: true,
-    languagesSpoken: ['English', 'Spanish', 'Vietnamese'],
-    averageRating: 4.5,
-    totalReviews: 892,
-    insuranceAccepted: ['Blue Cross', 'Aetna', 'United Healthcare', 'Self-Pay'],
-    telehealthAvailable: false,
-    boardCertified: false,
-    yearsInPractice: 8,
-    distance: 12.5,
-  },
-];
+import {
+  getProviders,
+  getProviderById,
+  getUniqueSpecialties,
+  getUniqueCities,
+  HealthcareProvider
+} from '../../lib/providerService';
 
 const ProviderNetworkPage: React.FC = () => {
+  const [providers, setProviders] = useState<HealthcareProvider[]>([]);
+  const [filteredProviders, setFilteredProviders] = useState<HealthcareProvider[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
-  const [selectedProviderType, setSelectedProviderType] = useState('all');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('All Specialties');
+  const [selectedCity, setSelectedCity] = useState('All Cities');
   const [acceptingNewOnly, setAcceptingNewOnly] = useState(false);
   const [telehealthOnly, setTelehealthOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'name'>('distance');
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [sortBy, setSortBy] = useState<'rating' | 'experience' | 'name'>('rating');
 
-  const specialties = [
-    'all',
-    ...Array.from(new Set(mockProviders.flatMap(p => p.specialty))),
-  ];
+  const [specialties, setSpecialties] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
 
-  const providerTypes = [
-    { value: 'all', label: 'All Providers' },
-    { value: 'physician', label: 'Primary Care' },
-    { value: 'specialist', label: 'Specialist' },
-    { value: 'mental_health', label: 'Mental Health' },
-    { value: 'urgent_care', label: 'Urgent Care' },
-  ];
+  const [selectedProvider, setSelectedProvider] = useState<HealthcareProvider | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const filteredAndSortedProviders = useMemo(() => {
-    let filtered = mockProviders;
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [providers, searchQuery, selectedSpecialty, selectedCity, acceptingNewOnly, telehealthOnly, sortBy]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [providersData, specialtiesData, citiesData] = await Promise.all([
+        getProviders(),
+        getUniqueSpecialties(),
+        getUniqueCities()
+      ]);
+
+      setProviders(providersData);
+      setSpecialties(specialtiesData);
+      setCities(citiesData);
+    } catch (err: any) {
+      console.error('Error loading providers:', err);
+      setError(err.message || 'Failed to load providers');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...providers];
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         p =>
           p.name.toLowerCase().includes(query) ||
-          p.specialty.some(s => s.toLowerCase().includes(query)) ||
-          p.practiceName.toLowerCase().includes(query) ||
-          p.address.city.toLowerCase().includes(query)
+          p.specialty.toLowerCase().includes(query) ||
+          p.city.toLowerCase().includes(query) ||
+          (p.hospital_affiliation && p.hospital_affiliation.toLowerCase().includes(query))
       );
     }
 
-    if (selectedSpecialty !== 'all') {
-      filtered = filtered.filter(p => p.specialty.includes(selectedSpecialty));
+    if (selectedSpecialty && selectedSpecialty !== 'All Specialties') {
+      filtered = filtered.filter(p => p.specialty === selectedSpecialty);
     }
 
-    if (selectedProviderType !== 'all') {
-      filtered = filtered.filter(p => p.providerType === selectedProviderType);
+    if (selectedCity && selectedCity !== 'All Cities') {
+      filtered = filtered.filter(p => p.city === selectedCity);
     }
 
     if (acceptingNewOnly) {
-      filtered = filtered.filter(p => p.acceptingNewPatients);
+      filtered = filtered.filter(p => p.accepting_new_patients);
     }
 
     if (telehealthOnly) {
-      filtered = filtered.filter(p => p.telehealthAvailable);
+      filtered = filtered.filter(p => p.telemedicine_available);
     }
 
-    const sorted = [...filtered].sort((a, b) => {
+    filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'distance':
-          return (a.distance || 0) - (b.distance || 0);
         case 'rating':
-          return b.averageRating - a.averageRating;
+          return b.rating - a.rating;
+        case 'experience':
+          return b.experience_years - a.experience_years;
         case 'name':
           return a.name.localeCompare(b.name);
         default:
@@ -234,18 +104,264 @@ const ProviderNetworkPage: React.FC = () => {
       }
     });
 
-    return sorted;
-  }, [searchQuery, selectedSpecialty, selectedProviderType, acceptingNewOnly, telehealthOnly, sortBy]);
-
-  const getProviderTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      physician: 'Primary Care Physician',
-      specialist: 'Specialist',
-      mental_health: 'Mental Health Provider',
-      urgent_care: 'Urgent Care Facility',
-    };
-    return types[type] || type;
+    setFilteredProviders(filtered);
   };
+
+  const formatCurrency = (amount: number | null) => {
+    if (!amount) return 'Contact for pricing';
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
+  const openProviderDetails = (provider: HealthcareProvider) => {
+    setSelectedProvider(provider);
+    setShowDetailModal(true);
+  };
+
+  const renderProviderDetailModal = () => {
+    if (!showDetailModal || !selectedProvider) return null;
+
+    return (
+      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Provider Details</h2>
+            <button
+              onClick={() => setShowDetailModal(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="w-6 h-6 text-gray-600" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <div className="flex items-start gap-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
+                {selectedProvider.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-gray-900">{selectedProvider.name}</h3>
+                <p className="text-lg text-blue-600 font-medium">{selectedProvider.qualification}</p>
+                <p className="text-gray-600">{selectedProvider.hospital_affiliation || selectedProvider.clinic_name}</p>
+                <div className="flex items-center gap-4 mt-3">
+                  <div className="flex items-center gap-1">
+                    <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    <span className="font-bold text-lg">{selectedProvider.rating.toFixed(1)}</span>
+                    <span className="text-gray-500">({selectedProvider.total_reviews} reviews)</span>
+                  </div>
+                  {selectedProvider.verified && (
+                    <div className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+                      <Shield className="w-4 h-4" />
+                      Verified
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-blue-600" />
+                  Professional Information
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Specialty:</span>
+                    <span className="font-medium text-gray-900">{selectedProvider.specialty}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Experience:</span>
+                    <span className="font-medium text-gray-900">{selectedProvider.experience_years} years</span>
+                  </div>
+                  {selectedProvider.registration_number && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Reg. Number:</span>
+                      <span className="font-medium text-gray-900">{selectedProvider.registration_number}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Consultation Fee:</span>
+                    <span className="font-medium text-gray-900">{formatCurrency(selectedProvider.consultation_fee)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-blue-600" />
+                  Contact & Location
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <Building2 className="w-4 h-4 text-gray-400 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedProvider.address}</p>
+                      <p className="text-gray-600">{selectedProvider.city}, {selectedProvider.state} {selectedProvider.pincode}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <a href={`tel:${selectedProvider.phone}`} className="text-blue-600 hover:underline">
+                      {selectedProvider.phone}
+                    </a>
+                  </div>
+                  {selectedProvider.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <a href={`mailto:${selectedProvider.email}`} className="text-blue-600 hover:underline truncate">
+                        {selectedProvider.email}
+                      </a>
+                    </div>
+                  )}
+                  {selectedProvider.website && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-gray-400" />
+                      <a href={selectedProvider.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        Visit Website
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {selectedProvider.sub_specialties && selectedProvider.sub_specialties.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Sub-Specialties</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProvider.sub_specialties.map((sub, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                      {sub}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedProvider.languages && selectedProvider.languages.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Languages className="w-5 h-5 text-blue-600" />
+                  Languages Spoken
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProvider.languages.map((lang, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                      {lang}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedProvider.education && selectedProvider.education.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-blue-600" />
+                  Education
+                </h4>
+                <div className="space-y-3">
+                  {selectedProvider.education.map((edu: any, idx: number) => (
+                    <div key={idx} className="border-l-2 border-blue-500 pl-4">
+                      <p className="font-semibold text-gray-900">{edu.degree}</p>
+                      <p className="text-sm text-gray-600">{edu.institution}</p>
+                      <p className="text-sm text-gray-500">{edu.year}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedProvider.awards && selectedProvider.awards.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-blue-600" />
+                  Awards & Recognition
+                </h4>
+                <div className="space-y-2">
+                  {selectedProvider.awards.map((award: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg">
+                      <Award className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">{award.title}</p>
+                        <p className="text-sm text-gray-600">{award.organization}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedProvider.available_days && selectedProvider.available_days.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                  Availability
+                </h4>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-2">Available Days:</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {selectedProvider.available_days.map((day, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">
+                        {day}
+                      </span>
+                    ))}
+                  </div>
+                  {selectedProvider.available_hours && (
+                    <p className="text-sm text-gray-900">
+                      <span className="font-medium">Hours:</span> {selectedProvider.available_hours}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+              {selectedProvider.accepting_new_patients && (
+                <div className="text-center p-3 bg-green-50 rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-1" />
+                  <p className="text-xs font-medium text-green-800">Accepting New Patients</p>
+                </div>
+              )}
+              {selectedProvider.telemedicine_available && (
+                <div className="text-center p-3 bg-blue-50 rounded-lg">
+                  <Globe className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+                  <p className="text-xs font-medium text-blue-800">Telemedicine Available</p>
+                </div>
+              )}
+              {selectedProvider.insurance_accepted && (
+                <div className="text-center p-3 bg-teal-50 rounded-lg">
+                  <Shield className="w-6 h-6 text-teal-600 mx-auto mb-1" />
+                  <p className="text-xs font-medium text-teal-800">Insurance Accepted</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <button className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Schedule Appointment
+              </button>
+              <button className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                Get Directions
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading healthcare providers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -255,9 +371,15 @@ const ProviderNetworkPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Provider Network Directory</h1>
         </div>
         <p className="text-gray-600">
-          Find in-network healthcare providers near you with verified credentials and patient reviews.
+          Find verified healthcare providers across India with detailed credentials and patient reviews.
         </p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div className="mb-4">
@@ -283,29 +405,29 @@ const ProviderNetworkPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Provider Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
             <select
-              value={selectedProviderType}
-              onChange={(e) => setSelectedProviderType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={selectedSpecialty}
+              onChange={(e) => setSelectedSpecialty(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              {providerTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+              <option>All Specialties</option>
+              {specialties.map(specialty => (
+                <option key={specialty} value={specialty}>{specialty}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
             <select
-              value={selectedSpecialty}
-              onChange={(e) => setSelectedSpecialty(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              {specialties.map(specialty => (
-                <option key={specialty} value={specialty}>
-                  {specialty === 'all' ? 'All Specialties' : specialty}
-                </option>
+              <option>All Cities</option>
+              {cities.map(city => (
+                <option key={city} value={city}>{city}</option>
               ))}
             </select>
           </div>
@@ -315,10 +437,10 @@ const ProviderNetworkPage: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="distance">Distance</option>
               <option value="rating">Rating</option>
+              <option value="experience">Experience</option>
               <option value="name">Name</option>
             </select>
           </div>
@@ -340,21 +462,21 @@ const ProviderNetworkPage: React.FC = () => {
                 onChange={(e) => setTelehealthOnly(e.target.checked)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              Telehealth available
+              Telemedicine available
             </label>
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
-            Found <span className="font-semibold">{filteredAndSortedProviders.length}</span> providers
+            Found <span className="font-semibold">{filteredProviders.length}</span> providers
           </p>
-          {(searchQuery || selectedSpecialty !== 'all' || selectedProviderType !== 'all' || acceptingNewOnly || telehealthOnly) && (
+          {(searchQuery || selectedSpecialty !== 'All Specialties' || selectedCity !== 'All Cities' || acceptingNewOnly || telehealthOnly) && (
             <button
               onClick={() => {
                 setSearchQuery('');
-                setSelectedSpecialty('all');
-                setSelectedProviderType('all');
+                setSelectedSpecialty('All Specialties');
+                setSelectedCity('All Cities');
                 setAcceptingNewOnly(false);
                 setTelehealthOnly(false);
               }}
@@ -366,182 +488,98 @@ const ProviderNetworkPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          {filteredAndSortedProviders.length === 0 ? (
-            <div className="bg-white rounded-lg p-12 text-center border border-gray-200">
-              <Filter className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No providers found</h3>
-              <p className="text-gray-600">Try adjusting your filters or search criteria</p>
-            </div>
-          ) : (
-            filteredAndSortedProviders.map((provider) => (
-              <div
-                key={provider.id}
-                className="bg-white rounded-lg p-6 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all cursor-pointer"
-                onClick={() => setSelectedProvider(provider)}
-              >
-                <div className="flex items-start justify-between mb-4">
+      <div className="space-y-4">
+        {filteredProviders.length === 0 ? (
+          <div className="bg-white rounded-lg p-12 text-center border border-gray-200">
+            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No providers found</h3>
+            <p className="text-gray-600">Try adjusting your filters or search criteria</p>
+          </div>
+        ) : (
+          filteredProviders.map((provider) => (
+            <div
+              key={provider.id}
+              className="bg-white rounded-lg p-6 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex gap-4 flex-1">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                    {provider.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </div>
                   <div className="flex-1">
-                    <div className="flex items-start gap-3 mb-2">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                        {provider.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900">{provider.name}</h3>
-                        <p className="text-sm text-gray-600">{provider.credentials.join(', ')}</p>
-                        <p className="text-sm font-medium text-blue-600">{provider.practiceName}</p>
-                      </div>
-                    </div>
-                  </div>
-                  {provider.boardCertified && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">
-                      <Award className="w-4 h-4" />
-                      Board Certified
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {provider.specialty.map((spec, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                      {spec}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <MapPin className="w-4 h-4 text-gray-400" />
-                    <span>
-                      {provider.address.city}, {provider.address.state} ({provider.distance} mi)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                    <span>{provider.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <span className="font-semibold">{provider.averageRating}</span>
-                    <span className="text-gray-500">({provider.totalReviews} reviews)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <span>{provider.yearsInPractice} years experience</span>
+                    <h3 className="text-xl font-bold text-gray-900">{provider.name}</h3>
+                    <p className="text-sm text-gray-600">{provider.qualification}</p>
+                    <p className="text-sm font-medium text-blue-600">{provider.hospital_affiliation || provider.clinic_name}</p>
                   </div>
                 </div>
+                {provider.verified && (
+                  <div className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                    <Shield className="w-4 h-4" />
+                    Verified
+                  </div>
+                )}
+              </div>
 
-                <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
-                  {provider.acceptingNewPatients && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  {provider.specialty}
+                </span>
+                {provider.sub_specialties && provider.sub_specialties.slice(0, 2).map((sub, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                    {sub}
+                  </span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <span>{provider.city}, {provider.state}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <span>{provider.phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  <span className="font-semibold">{provider.rating.toFixed(1)}</span>
+                  <span className="text-gray-500">({provider.total_reviews})</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <span>{provider.experience_years} years exp.</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                <div className="flex items-center gap-4">
+                  {provider.accepting_new_patients && (
                     <div className="flex items-center gap-1 text-sm text-green-700">
                       <CheckCircle className="w-4 h-4" />
-                      <span>Accepting new patients</span>
+                      <span>Accepting patients</span>
                     </div>
                   )}
-                  {provider.telehealthAvailable && (
+                  {provider.telemedicine_available && (
                     <div className="flex items-center gap-1 text-sm text-blue-700">
                       <Globe className="w-4 h-4" />
-                      <span>Telehealth</span>
+                      <span>Telemedicine</span>
                     </div>
                   )}
-                  <button className="ml-auto flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    View Details
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="lg:col-span-1">
-          {selectedProvider ? (
-            <div className="bg-white rounded-lg p-6 border border-gray-200 sticky top-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Provider Details</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Contact Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <p className="text-gray-600">{selectedProvider.address.street}</p>
-                    <p className="text-gray-600">
-                      {selectedProvider.address.city}, {selectedProvider.address.state} {selectedProvider.address.zip}
-                    </p>
-                    <p className="text-gray-600">{selectedProvider.phone}</p>
-                    {selectedProvider.website && (
-                      <a
-                        href={selectedProvider.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        <Globe className="w-4 h-4" />
-                        Visit Website
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Languages</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProvider.languagesSpoken.map((lang, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                        {lang}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Insurance Accepted</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProvider.insuranceAccepted.map((insurance, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-                        {insurance}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-200">
-                  <button className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    Schedule Appointment
-                  </button>
-                  <button className="w-full mt-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center gap-2">
-                    <Navigation className="w-5 h-5" />
-                    Get Directions
-                  </button>
-                </div>
+                <button
+                  onClick={() => openProviderDetails(provider)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  View Details
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          ) : (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 sticky top-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">How to Choose a Provider</h3>
-              <div className="space-y-3 text-sm text-gray-700">
-                <p>
-                  <strong>Check In-Network Status:</strong> Verify the provider accepts your insurance to minimize
-                  out-of-pocket costs.
-                </p>
-                <p>
-                  <strong>Consider Location:</strong> Choose providers convenient to your home or work for easier access
-                  to care.
-                </p>
-                <p>
-                  <strong>Read Reviews:</strong> Patient ratings and reviews provide insights into quality of care and
-                  office experience.
-                </p>
-                <p>
-                  <strong>Verify Credentials:</strong> Board-certified providers have met rigorous training and
-                  examination standards.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+          ))
+        )}
       </div>
+
+      {renderProviderDetailModal()}
     </div>
   );
 };
