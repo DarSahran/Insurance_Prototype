@@ -5,6 +5,7 @@ import { LoginPage } from './components/Auth/LoginPage';
 import SignupPage from './components/Auth/SignupPage';
 import LandingPage from './components/LandingPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
+import SupabaseErrorBoundary from './components/SupabaseErrorBoundary';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import PoliciesPage from './pages/dashboard/PoliciesPage';
@@ -219,8 +220,9 @@ const LandingPageWrapper = () => {
 
 function App() {
   return (
-    <AuthWrapper>
-      <BrowserRouter>
+    <SupabaseErrorBoundary>
+      <AuthWrapper>
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={
             <div className="min-h-screen bg-gray-50">
@@ -269,6 +271,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthWrapper>
+    </SupabaseErrorBoundary>
   );
 }
 

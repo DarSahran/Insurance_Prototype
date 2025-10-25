@@ -7,10 +7,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationCenter } from './NotificationCenter';
+import InsureBot from '../InsureBot';
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [chatbotMinimized, setChatbotMinimized] = useState(false);
   const location = useLocation();
   const { user, signOut, loading } = useAuth();
 
@@ -34,16 +37,11 @@ const DashboardLayout: React.FC = () => {
   console.log('DashboardLayout: Rendering dashboard for user:', user.email);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Profile', href: '/dashboard/profile', icon: User },
-    { name: 'Policies', href: '/dashboard/policies', icon: Shield },
-    { name: 'Assessments', href: '/dashboard/assessments', icon: FileText },
+    { name: 'Home', href: '/dashboard', icon: Home },
     { name: 'AI Recommendations', href: '/dashboard/ai-recommendations', icon: Sparkles },
     { name: 'Risk Monitoring', href: '/dashboard/risk', icon: TrendingUp },
-    { name: 'Health Tracking', href: '/dashboard/health', icon: Heart },
     { name: 'Financial Planning', href: '/dashboard/financial', icon: DollarSign },
     { name: 'Family Management', href: '/dashboard/family', icon: Users },
-    { name: 'Documents', href: '/dashboard/documents', icon: Upload },
     { name: 'Claims', href: '/dashboard/claims', icon: FileCheck },
     { name: 'Payments', href: '/dashboard/payments', icon: CreditCard },
     { name: 'Provider Network', href: '/dashboard/providers', icon: Users },
@@ -92,7 +90,7 @@ const DashboardLayout: React.FC = () => {
         </div>
 
         {/* Navigation links */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3" style={{ height: 'calc(100vh - 128px)' }}>
+        <nav className="flex-1 overflow-y-auto py-4 px-3">
           <div className="space-y-1">
             {navigation.map((item) => {
               const isActive =
@@ -122,22 +120,6 @@ const DashboardLayout: React.FC = () => {
           </div>
         </nav>
 
-        {/* User info at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-sm font-semibold">
-                {user.email?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user.user_metadata?.full_name || user.email?.split('@')[0]}
-              </p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
-            </div>
-          </div>
-        </div>
       </aside>
 
       {/* Main content area */}
@@ -221,6 +203,29 @@ const DashboardLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Floating Chatbot Button */}
+      {!chatbotOpen && (
+        <button
+          onClick={() => setChatbotOpen(true)}
+          className="fixed bottom-6 right-6 z-40 w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 flex items-center justify-center group"
+          title="Open InsureBot"
+        >
+          <Sparkles className="w-7 h-7 animate-pulse" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
+        </button>
+      )}
+
+      {/* InsureBot Chatbot */}
+      <InsureBot
+        isOpen={chatbotOpen}
+        onClose={() => {
+          setChatbotOpen(false);
+          setChatbotMinimized(false);
+        }}
+        isMinimized={chatbotMinimized}
+        onToggleMinimize={() => setChatbotMinimized(!chatbotMinimized)}
+      />
     </div>
   );
 };

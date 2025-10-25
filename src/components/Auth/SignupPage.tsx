@@ -51,26 +51,57 @@ const SignupPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    console.log('🚀 SIGNUP STARTED');
+    console.log('📧 Email:', email);
+
     if (password !== confirmPassword) {
+      console.log('❌ Passwords do not match');
       setError('Passwords do not match');
       return;
     }
 
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
+      console.log('❌ Password validation failed:', passwordValidation.feedback);
       setError(`Password must contain: ${passwordValidation.feedback.join(', ')}`);
       return;
     }
 
+    console.log('✅ Validation passed, creating account...');
     setLoading(true);
 
     try {
-      await signUp(email, password, {});
+      console.log('📤 Calling signUp function...');
+      const result = await signUp(email, password, {});
+      console.log('✅ SignUp result:', result);
+
+      // Check for "user already exists" error
+      if (result.error && result.error.message.includes('User already registered')) {
+        console.log('⚠️ User already exists, suggesting login');
+        setError('This email is already registered. Please login instead or use password reset if you forgot your password.');
+        setLoading(false);
+        return;
+      }
+
+      // Check for other errors
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (result && result.data && result.data.user) {
+        console.log('✅✅ ACCOUNT CREATED SUCCESSFULLY!');
+        console.log('👤 User ID:', result.data.user.id);
+        console.log('📧 User Email:', result.data.user.email);
+      } else {
+        console.log('⚠️ SignUp completed but no user returned');
+        throw new Error('Account creation failed - no user returned');
+      }
 
       const redirectUrl = localStorage.getItem('redirectAfterAuth');
       const pendingAssessment = sessionStorage.getItem('pendingAssessment');
 
       if (redirectUrl && redirectUrl === '/checkout' && pendingAssessment) {
+        console.log('🔀 Redirecting to checkout with assessment...');
         const assessment = JSON.parse(pendingAssessment);
         localStorage.removeItem('redirectAfterAuth');
 
@@ -85,15 +116,21 @@ const SignupPage: React.FC = () => {
           }
         });
       } else if (redirectUrl) {
+        console.log('🔀 Redirecting to:', redirectUrl);
         localStorage.removeItem('redirectAfterAuth');
         navigate(redirectUrl);
       } else {
+        console.log('🔀 Redirecting to dashboard...');
         navigate('/dashboard');
       }
     } catch (error: any) {
+      console.error('❌❌ SIGNUP FAILED:', error);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error);
       setError(error.message || 'Failed to create account');
     } finally {
       setLoading(false);
+      console.log('🏁 SIGNUP FLOW COMPLETED');
     }
   };
 

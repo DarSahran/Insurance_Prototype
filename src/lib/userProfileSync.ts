@@ -58,6 +58,12 @@ export const ensureUserProfile = async (user: User, provider: 'clerk' | 'supabas
     if (!existingProfile) {
       const { data, error: createError } = await createUserProfile(profileData);
       if (createError) {
+        // If error is duplicate key, fetch the existing profile instead
+        if (createError.code === '23505') {
+          console.log(`Profile already exists for ${provider} user (race condition handled):`, user.email);
+          const { data: retryData } = await getUserProfile(user.id);
+          return { success: true, data: retryData, created: false };
+        }
         console.error(`Error creating user profile for ${provider} user:`, createError);
         return { success: false, error: createError };
       } else {
@@ -66,14 +72,26 @@ export const ensureUserProfile = async (user: User, provider: 'clerk' | 'supabas
       }
     } else {
       // Profile exists, check if we need to update it
-      const needsUpdate = 
-        existingProfile.email !== profileData.email ||
-        existingProfile.first_name !== profileData.first_name ||
-        existingProfile.last_name !== profileData.last_name ||
-        existingProfile.full_name !== profileData.full_name;
+      // Only update if new data is actually different AND not just empty strings
+      const hasNewData = (newVal: string | undefined, existingVal: string | null) => {
+        return newVal && newVal.trim() !== '' && newVal !== existingVal;
+      };
+
+      const needsUpdate =
+        hasNewData(profileData.email, existingProfile.email) ||
+        hasNewData(profileData.first_name, existingProfile.first_name) ||
+        hasNewData(profileData.last_name, existingProfile.last_name) ||
+        hasNewData(profileData.full_name, existingProfile.full_name);
 
       if (needsUpdate) {
-        const { data, error: updateError } = await updateUserProfile(user.id, profileData);
+        // Only update fields that have actual new data
+        const updates: any = {};
+        if (hasNewData(profileData.email, existingProfile.email)) updates.email = profileData.email;
+        if (hasNewData(profileData.first_name, existingProfile.first_name)) updates.first_name = profileData.first_name;
+        if (hasNewData(profileData.last_name, existingProfile.last_name)) updates.last_name = profileData.last_name;
+        if (hasNewData(profileData.full_name, existingProfile.full_name)) updates.full_name = profileData.full_name;
+
+        const { data, error: updateError } = await updateUserProfile(user.id, updates);
         if (updateError) {
           console.error(`Error updating user profile for ${provider} user:`, updateError);
           return { success: false, error: updateError };
@@ -83,6 +101,7 @@ export const ensureUserProfile = async (user: User, provider: 'clerk' | 'supabas
         }
       } else {
         // No update needed
+        console.log(`User profile already up-to-date for ${provider} user:`, user.email);
         return { success: true, data: existingProfile, upToDate: true };
       }
     }

@@ -97,18 +97,23 @@ export class WeatherService {
       await supabase.from('weather_data').insert({
         location_id: locationId,
         user_id: userId,
-        temperature: Number(weatherData.temperature),
-        humidity: Number(weatherData.humidity),
+        temperature: Math.round(Number(weatherData.temperature)),
+        humidity: Math.round(Number(weatherData.humidity)),
         weather_condition: weatherData.weather_condition,
-        wind_speed: Number(weatherData.wind_speed),
-        precipitation: Number(weatherData.precipitation),
-        severe_weather_alerts: weatherData.severe_weather_alerts,
-        air_quality_index: weatherData.air_quality_index ? Number(weatherData.air_quality_index) : null,
-        uv_index: weatherData.uv_index ? Number(weatherData.uv_index) : null,
+        wind_speed: Math.round(Number(weatherData.wind_speed)),
+        precipitation: Math.round(Number(weatherData.precipitation)),
+        severe_weather_alerts: weatherData.severe_weather_alerts || [],
+        air_quality_index: weatherData.air_quality_index ? Math.round(Number(weatherData.air_quality_index)) : null,
+        uv_index: weatherData.uv_index ? Math.round(Number(weatherData.uv_index)) : null,
         recorded_at: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error storing weather data:', error);
+      console.error('Weather data that failed:', {
+        location_id: locationId,
+        temperature: weatherData.temperature,
+        humidity: weatherData.humidity
+      });
     }
   }
 
