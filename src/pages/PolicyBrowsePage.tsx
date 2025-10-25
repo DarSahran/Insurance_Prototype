@@ -110,9 +110,9 @@ const PolicyBrowsePage: React.FC = () => {
     navigate(`/policy/${policyId}`);
   };
 
-  const handleGetQuote = (e: React.MouseEvent, policyId: string) => {
+  const handleGetQuote = (e: React.MouseEvent, insuranceType: string) => {
     e.stopPropagation();
-    navigate(`/checkout/${policyId}`);
+    navigate(`/assessment/${insuranceType}`);
   };
 
 
@@ -299,7 +299,7 @@ const PolicyBrowsePage: React.FC = () => {
                     </div>
 
                     <button
-                      onClick={(e) => handleGetQuote(e, policy.id)}
+                      onClick={(e) => handleGetQuote(e, policy.policyType || selectedInsuranceType || 'health')}
                       className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
                     >
                       Get Quote
