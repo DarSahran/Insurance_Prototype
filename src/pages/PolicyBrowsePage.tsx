@@ -77,8 +77,8 @@ const PolicyBrowsePage: React.FC = () => {
 
     if (searchQuery) {
       filtered = filtered.filter(p =>
-        p.policy_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.policy_description?.toLowerCase().includes(searchQuery.toLowerCase())
+        p.policyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -225,7 +225,7 @@ const PolicyBrowsePage: React.FC = () => {
               return (
                 <div
                   key={policy.id}
-                  onClick={() => handlePolicyClick(policy.id, policy.insuranceType)}
+                  onClick={() => handlePolicyClick(policy.id, policy.policyType)}
                   className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-blue-300 overflow-hidden group"
                 >
                   {/* Provider Logo Header */}
@@ -303,7 +303,7 @@ const PolicyBrowsePage: React.FC = () => {
                     </div>
 
                     <button
-                      onClick={(e) => handleGetQuote(e, policy.insuranceType || selectedInsuranceType || 'health')}
+                      onClick={(e) => handleGetQuote(e, policy.policyType || selectedInsuranceType || 'health')}
                       className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
                     >
                       Get Quote
