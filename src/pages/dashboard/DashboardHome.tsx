@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Shield, DollarSign, Target, Brain, TrendingUp, Heart, Calendar,
-  Plus, CheckCircle, ArrowRight, Activity, Bell, Cloud, MapPin,
-  Loader, AlertTriangle, Droplets, Wind, Sun, Search, Filter, Grid, List,
+  Plus, CheckCircle, ArrowRight, Activity, Bell,
+  Loader, AlertTriangle, Search, Filter, Grid, List,
   Download, Phone, Eye, FileText, Clock
 } from 'lucide-react';
 import { useUserData } from '../../hooks/useUserData';
 import { UserDataService } from '../../lib/userDataService';
 
 const DashboardHome: React.FC = () => {
-  const { userData, loading, firstName, policies, claims, questionnaires, location, weather, refreshWeather, initializeLocation } = useUserData();
+  const { userData, loading, firstName, policies, claims, questionnaires } = useUserData();
   const [stats, setStats] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,12 +24,6 @@ const DashboardHome: React.FC = () => {
   useEffect(() => {
     loadStats();
   }, [userData]);
-
-  useEffect(() => {
-    if (!location) {
-      initializeLocation();
-    }
-  }, [location]);
 
   const loadStats = async () => {
     if (!userData?.profile) return;
@@ -525,69 +519,83 @@ const DashboardHome: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          {location && weather && (
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-5 h-5" />
-                  <h3 className="font-semibold">Your Location</h3>
-                </div>
-                <button
-                  onClick={refreshWeather}
-                  className="p-2 hover:bg-blue-400 rounded-lg transition-colors"
-                >
-                  <Activity className="w-4 h-4" />
-                </button>
+          {/* AI-Powered Product Recommendations */}
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Brain className="w-5 h-5" />
+                <h3 className="font-semibold">Recommended For You</h3>
               </div>
-
-              <p className="text-sm opacity-90 mb-4">
-                {location.city}, {location.state}
-              </p>
-
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="flex items-center space-x-2">
-                  {weather.weather_condition?.includes('cloud') ? (
-                    <Cloud className="w-12 h-12" />
-                  ) : (
-                    <Sun className="w-12 h-12" />
-                  )}
-                  <div>
-                    <p className="text-4xl font-bold">{Math.round(weather.temperature)}°C</p>
-                    <p className="text-sm opacity-90 capitalize">{weather.weather_condition}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-blue-400">
-                <div className="flex items-center space-x-2">
-                  <Droplets className="w-4 h-4 opacity-75" />
-                  <div>
-                    <p className="text-xs opacity-75">Humidity</p>
-                    <p className="font-semibold">{Math.round(weather.humidity)}%</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Wind className="w-4 h-4 opacity-75" />
-                  <div>
-                    <p className="text-xs opacity-75">Wind</p>
-                    <p className="font-semibold">{Math.round(weather.wind_speed)} km/h</p>
-                  </div>
-                </div>
-              </div>
-
-              {weather.severe_weather_alerts && weather.severe_weather_alerts.length > 0 && (
-                <div className="mt-4 p-3 bg-orange-500 rounded-lg">
-                  <p className="text-sm font-semibold flex items-center">
-                    <Bell className="w-4 h-4 mr-2" />
-                    Weather Alert
-                  </p>
-                  <p className="text-xs mt-1 opacity-90">
-                    Check local advisories for safety
-                  </p>
-                </div>
-              )}
+              <Link
+                to="/browse-policies"
+                className="p-2 hover:bg-blue-400 rounded-lg transition-colors"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
-          )}
+
+            <p className="text-sm opacity-90 mb-4">
+              {latestQuestionnaire ?
+                `Based on your ${latestQuestionnaire.risk_score < 40 ? 'low' : latestQuestionnaire.risk_score < 70 ? 'medium' : 'high'} risk score`
+                : 'Popular insurance products'}
+            </p>
+
+            {/* Product Carousel */}
+            <div className="space-y-3">
+              {(() => {
+                const riskScore = latestQuestionnaire?.risk_score || 50;
+                const recommendations = [];
+
+                if (riskScore >= 70) {
+                  // High risk - comprehensive coverage
+                  recommendations.push(
+                    { icon: Heart, name: 'Critical Illness Insurance', desc: 'Comprehensive health protection', color: 'bg-red-500' },
+                    { icon: Shield, name: 'Life Insurance', desc: 'Secure your family\'s future', color: 'bg-blue-500' },
+                    { icon: Activity, name: 'Accident Cover', desc: 'Protection against unforeseen events', color: 'bg-orange-500' }
+                  );
+                } else if (riskScore >= 40) {
+                  // Medium risk - balanced coverage
+                  recommendations.push(
+                    { icon: Heart, name: 'Health Insurance', desc: 'Medical coverage for peace of mind', color: 'bg-green-500' },
+                    { icon: Shield, name: 'Term Life Insurance', desc: 'Affordable family protection', color: 'bg-blue-500' },
+                    { icon: Activity, name: 'Personal Accident', desc: 'Extra safety net for daily life', color: 'bg-orange-500' }
+                  );
+                } else {
+                  // Low risk - essential coverage
+                  recommendations.push(
+                    { icon: Shield, name: 'Term Life Insurance', desc: 'Essential family protection', color: 'bg-blue-500' },
+                    { icon: Heart, name: 'Basic Health Cover', desc: 'Affordable medical insurance', color: 'bg-green-500' },
+                    { icon: DollarSign, name: 'Investment Plans', desc: 'Grow your wealth safely', color: 'bg-teal-500' }
+                  );
+                }
+
+                return recommendations.map((product, index) => {
+                  const Icon = product.icon;
+                  return (
+                    <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-all cursor-pointer group">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 ${product.color} rounded-lg`}>
+                          <Icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm">{product.name}</p>
+                          <p className="text-xs opacity-75">{product.desc}</p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
+            <Link
+              to="/browse-policies"
+              className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
+            >
+              <span>View All Products</span>
+            </Link>
+          </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
@@ -616,14 +624,14 @@ const DashboardHome: React.FC = () => {
               </Link>
 
               <Link
-                to="/dashboard/health"
-                className="flex items-center justify-between p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors group"
+                to="/browse-policies"
+                className="flex items-center justify-between p-3 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors group"
               >
                 <div className="flex items-center space-x-3">
-                  <Activity className="w-5 h-5 text-orange-600" />
-                  <span className="text-gray-900 font-medium">Health Tracking</span>
+                  <Target className="w-5 h-5 text-teal-600" />
+                  <span className="text-gray-900 font-medium">Browse Policies</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-orange-600 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 text-teal-600 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
