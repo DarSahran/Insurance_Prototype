@@ -75,12 +75,26 @@ const SignupPage: React.FC = () => {
       const result = await signUp(email, password, {});
       console.log('✅ SignUp result:', result);
 
-      if (result && result.user) {
+      // Check for "user already exists" error
+      if (result.error && result.error.message.includes('User already registered')) {
+        console.log('⚠️ User already exists, suggesting login');
+        setError('This email is already registered. Please login instead or use password reset if you forgot your password.');
+        setLoading(false);
+        return;
+      }
+
+      // Check for other errors
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (result && result.data && result.data.user) {
         console.log('✅✅ ACCOUNT CREATED SUCCESSFULLY!');
-        console.log('👤 User ID:', result.user.id);
-        console.log('📧 User Email:', result.user.email);
+        console.log('👤 User ID:', result.data.user.id);
+        console.log('📧 User Email:', result.data.user.email);
       } else {
         console.log('⚠️ SignUp completed but no user returned');
+        throw new Error('Account creation failed - no user returned');
       }
 
       const redirectUrl = localStorage.getItem('redirectAfterAuth');
