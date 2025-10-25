@@ -34,8 +34,7 @@ const DashboardLayout: React.FC = () => {
   console.log('DashboardLayout: Rendering dashboard for user:', user.email);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Policies', href: '/dashboard/policies', icon: Shield },
+    { name: 'Home', href: '/dashboard', icon: Home },
     { name: 'AI Recommendations', href: '/dashboard/ai-recommendations', icon: Sparkles },
     { name: 'Risk Monitoring', href: '/dashboard/risk', icon: TrendingUp },
     { name: 'Financial Planning', href: '/dashboard/financial', icon: DollarSign },
