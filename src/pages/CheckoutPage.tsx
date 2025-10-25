@@ -60,17 +60,21 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
           let quickPolicyData;
 
           if (purchaseData.assessmentData) {
+            const customerPhone = purchaseData.assessmentData.mobile ||
+                                 purchaseData.assessmentData.phone ||
+                                 '0000000000';
+
             quickPolicyData = {
               policy_number: policyNumber,
               user_id: user?.id || 'guest',
-              catalog_policy_id: policyData.id,
+              catalog_policy_id: policyData.id || null,
               policy_type: policyType,
-              provider_id: policyData.provider_id,
+              provider_id: policyData.provider_id || null,
               customer_name: purchaseData.assessmentData.fullName || 'Customer',
               customer_email: user?.email || 'customer@example.com',
-              customer_phone: purchaseData.assessmentData.mobile || purchaseData.assessmentData.phone || '',
+              customer_phone: customerPhone,
               customer_dob: purchaseData.assessmentData.dob ? new Date(purchaseData.assessmentData.dob) : undefined,
-              customer_gender: purchaseData.assessmentData.gender,
+              customer_gender: purchaseData.assessmentData.gender || 'Not specified',
               coverage_amount: 500000,
               monthly_premium: Math.round(purchaseData.premium / 12),
               annual_premium: purchaseData.premium,
@@ -111,7 +115,11 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
             };
           }
 
+          console.log('Creating policy with data:', quickPolicyData);
+
           const quickPolicy = await policyMarketplaceService.createQuickPolicy(quickPolicyData);
+
+          console.log('Policy created successfully:', quickPolicy);
 
           localStorage.removeItem('quick_buy_data');
           sessionStorage.removeItem('pendingAssessment');
@@ -119,7 +127,14 @@ const CheckoutForm: React.FC<{ policyData: any; purchaseData: any; clientSecret:
           navigate(`/purchase-success/${quickPolicy.id}`, { replace: true });
         } catch (err: any) {
           console.error('Error creating policy after payment:', err);
-          setError('Payment succeeded but policy creation failed. Please contact support with payment ID: ' + paymentIntent.id);
+          console.error('Error details:', {
+            message: err.message,
+            details: err.details,
+            hint: err.hint,
+            code: err.code
+          });
+          const errorMsg = err.message || err.details || 'Unknown error';
+          setError(`Payment succeeded but policy creation failed: ${errorMsg}. Please contact support with payment ID: ${paymentIntent.id}`);
           setProcessing(false);
         }
       } else {
