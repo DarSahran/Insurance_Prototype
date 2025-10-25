@@ -18,6 +18,7 @@ import RiskDashboardPage from './pages/dashboard/RiskDashboardPage';
 import HealthTrackingPage from './pages/dashboard/HealthTrackingPage';
 import FinancialPlanningPage from './pages/dashboard/FinancialPlanningPage';
 import FamilyManagementPage from './pages/dashboard/FamilyManagementPage';
+import VehicleManagementPage from './pages/dashboard/VehicleManagementPage';
 import DocumentCenterPage from './pages/dashboard/DocumentCenterPage';
 import ClaimsPage from './pages/dashboard/ClaimsPage';
 import PaymentsPage from './pages/dashboard/PaymentsPage';
@@ -260,6 +261,7 @@ function App() {
             <Route path="health" element={<HealthTrackingPage />} />
             <Route path="financial" element={<FinancialPlanningPage />} />
             <Route path="family" element={<FamilyManagementPage />} />
+            <Route path="vehicles" element={<VehicleManagementPage />} />
             <Route path="documents" element={<DocumentCenterPage />} />
             <Route path="claims" element={<ClaimsPage />} />
             <Route path="claims/:id" element={<ClaimDetailsPage />} />
