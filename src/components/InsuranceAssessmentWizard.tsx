@@ -82,9 +82,11 @@ const InsuranceAssessmentWizard: React.FC = () => {
         insuranceType,
         formData,
         selectedPolicyPeriod,
-        calculatedPremium
+        calculatedPremium,
+        policyName: assessment.name
       }));
-      navigate('/auth/signup?redirect=/checkout');
+      localStorage.setItem('redirectAfterAuth', '/checkout');
+      navigate('/signup');
       return;
     }
 

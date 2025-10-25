@@ -68,7 +68,23 @@ const SignupPage: React.FC = () => {
       await signUp(email, password, {});
 
       const redirectUrl = localStorage.getItem('redirectAfterAuth');
-      if (redirectUrl) {
+      const pendingAssessment = sessionStorage.getItem('pendingAssessment');
+
+      if (redirectUrl && redirectUrl === '/checkout' && pendingAssessment) {
+        const assessment = JSON.parse(pendingAssessment);
+        localStorage.removeItem('redirectAfterAuth');
+
+        navigate('/checkout', {
+          replace: true,
+          state: {
+            insuranceType: assessment.insuranceType,
+            assessmentData: assessment.formData,
+            policyPeriod: assessment.selectedPolicyPeriod,
+            premium: assessment.calculatedPremium,
+            policyName: assessment.policyName
+          }
+        });
+      } else if (redirectUrl) {
         localStorage.removeItem('redirectAfterAuth');
         navigate(redirectUrl);
       } else {
