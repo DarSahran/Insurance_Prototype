@@ -184,6 +184,14 @@ const DashboardLayout: React.FC = () => {
                       <User className="w-4 h-4 mr-3 text-gray-400" />
                       Your Profile
                     </Link>
+                    <Link
+                      to="/dashboard/settings"
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                      Settings
+                    </Link>
                     <hr className="my-1 border-gray-100" />
                     <button
                       onClick={handleSignOut}
