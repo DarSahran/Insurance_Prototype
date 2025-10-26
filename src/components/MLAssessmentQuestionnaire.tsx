@@ -356,15 +356,26 @@ const MLAssessmentQuestionnaire: React.FC = () => {
 
     if (field.type === 'boolean') {
       return (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
-              type="checkbox"
-              checked={value as boolean}
-              onChange={(e) => handleInputChange(field.name, e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded"
+              type="radio"
+              name={field.name}
+              checked={value === true}
+              onChange={() => handleInputChange(field.name, true)}
+              className="w-5 h-5 text-blue-600"
             />
             <span className="text-gray-700">Yes</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name={field.name}
+              checked={value === false}
+              onChange={() => handleInputChange(field.name, false)}
+              className="w-5 h-5 text-blue-600"
+            />
+            <span className="text-gray-700">No</span>
           </label>
         </div>
       );
