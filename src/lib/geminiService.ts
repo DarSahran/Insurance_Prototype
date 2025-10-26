@@ -62,7 +62,7 @@ export class GeminiInsuranceService {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
       const prompt = this.buildAnalysisPrompt(data);
       const result = await model.generateContent(prompt);
@@ -89,7 +89,7 @@ export class GeminiInsuranceService {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
       const contextPrompt = `You are an expert insurance advisor AI. Here is the user's profile:
 
@@ -125,7 +125,7 @@ Provide a helpful, personalized response based on their profile. Keep responses 
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
       const prompt = `Based on this user profile, recommend 5 specific insurance policies they're eligible for:
 
