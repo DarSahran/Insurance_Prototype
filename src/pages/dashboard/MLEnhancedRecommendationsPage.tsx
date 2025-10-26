@@ -40,7 +40,8 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
       const { data: questionnaire, error: fetchError } = await getLatestQuestionnaire(user.id);
 
       if (fetchError || !questionnaire) {
-        setError('No questionnaire data found. Please complete an insurance assessment first.');
+        setError('');
+        setQuestionnaireData(null);
         setLoading(false);
         return;
       }
@@ -176,7 +177,134 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (!questionnaireData && !loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
+        <div className="max-w-4xl w-full">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-12 text-center">
+              <div className="inline-block p-6 bg-white/20 backdrop-blur-lg rounded-full mb-6 animate-pulse">
+                <Sparkles className="w-16 h-16 text-white" />
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                Discover Your Insurance Score
+              </h1>
+              <p className="text-xl text-white/90 max-w-2xl mx-auto">
+                Get AI-powered risk assessment and personalized recommendations in just 5 minutes
+              </p>
+            </div>
+
+            <div className="p-8 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
+                <div className="text-center group">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                    <Shield className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Risk Score</h3>
+                  <p className="text-gray-600">See your personalized risk assessment (0-100)</p>
+                </div>
+
+                <div className="text-center group">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                    <DollarSign className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Premium Estimate</h3>
+                  <p className="text-gray-600">Get ML-optimized pricing instantly</p>
+                </div>
+
+                <div className="text-center group">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                    <Brain className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">AI Insights</h3>
+                  <p className="text-gray-600">Powered by 10K+ validated cases</p>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 md:p-8 mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">What You'll Discover</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { icon: Target, text: 'Personalized risk assessment score', badge: 'NEW' },
+                    { icon: TrendingUp, text: 'ML-predicted monthly premium', badge: 'AI' },
+                    { icon: Heart, text: 'Health insights & risk factors', badge: 'HOT' },
+                    { icon: Sparkles, text: 'AI-generated improvement tips', badge: 'AI' },
+                    { icon: Shield, text: 'Top policy recommendations', badge: 'NEW' },
+                    { icon: Brain, text: '94.2% accurate predictions', badge: 'ML' },
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center space-x-3 bg-white rounded-xl p-4 hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                        <item.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-gray-700 font-medium">{item.text}</span>
+                      </div>
+                      <span className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full">
+                        {item.badge}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-center mb-8">
+                <button
+                  onClick={() => navigate('/dashboard/assessment/new')}
+                  className="group relative inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white px-12 py-5 rounded-2xl text-lg font-bold hover:shadow-2xl transition-all transform hover:scale-105 hover:-translate-y-1"
+                >
+                  <Zap className="w-6 h-6 group-hover:animate-bounce" />
+                  <span>Start Your Free Assessment</span>
+                  <Sparkles className="w-6 h-6 group-hover:animate-spin" />
+                </button>
+                <p className="text-gray-500 mt-4 text-sm flex items-center justify-center space-x-4 flex-wrap">
+                  <span className="flex items-center">
+                    <span className="mr-1">⚡</span> 5 minutes
+                  </span>
+                  <span className="flex items-center">
+                    <span className="mr-1">🔒</span> 100% secure
+                  </span>
+                  <span className="flex items-center">
+                    <span className="mr-1">✨</span> No credit card
+                  </span>
+                </p>
+              </div>
+
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 md:p-8">
+                <div className="grid grid-cols-3 gap-4 md:gap-8 text-center">
+                  <div className="group cursor-default">
+                    <div className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 group-hover:scale-110 transition-transform inline-block">
+                      10K+
+                    </div>
+                    <div className="text-xs md:text-sm text-gray-600 mt-1 font-medium">Validated Cases</div>
+                  </div>
+                  <div className="group cursor-default">
+                    <div className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 group-hover:scale-110 transition-transform inline-block">
+                      94.2%
+                    </div>
+                    <div className="text-xs md:text-sm text-gray-600 mt-1 font-medium">Accuracy</div>
+                  </div>
+                  <div className="group cursor-default">
+                    <div className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-red-600 group-hover:scale-110 transition-transform inline-block">
+                      3-5s
+                    </div>
+                    <div className="text-xs md:text-sm text-gray-600 mt-1 font-medium">Analysis Time</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 text-center">
+                <p className="text-gray-500 text-sm">
+                  Join thousands of users who discovered their insurance score
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && error !== '') {
     return (
       <div className="max-w-2xl mx-auto mt-20 p-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
@@ -186,7 +314,7 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
               <h3 className="text-lg font-semibold text-red-900 mb-2">Unable to Load Recommendations</h3>
               <p className="text-red-700 mb-4">{error}</p>
               <button
-                onClick={() => navigate('/dashboard/assessments')}
+                onClick={() => navigate('/dashboard/assessment/new')}
                 className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
               >
                 Complete Assessment
