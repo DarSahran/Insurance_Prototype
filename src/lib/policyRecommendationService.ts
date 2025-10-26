@@ -25,19 +25,19 @@ export interface UserPolicyStatus {
 export class PolicyRecommendationService {
   static async getUserPolicies(userId: string): Promise<UserPolicyStatus> {
     const { data: userPolicies } = await supabase
-      .from('user_policies')
-      .select('insurance_type')
+      .from('policies')
+      .select('policy_type')
       .eq('user_id', userId)
       .eq('status', 'active');
 
     const policies = userPolicies || [];
     return {
-      hasHealthInsurance: policies.some(p => p.insurance_type === 'health'),
-      hasLifeInsurance: policies.some(p => p.insurance_type === 'life' || p.insurance_type === 'term_life'),
-      hasCarInsurance: policies.some(p => p.insurance_type === 'car'),
-      hasTwoWheelerInsurance: policies.some(p => p.insurance_type === 'two_wheeler'),
-      hasHomeInsurance: policies.some(p => p.insurance_type === 'home'),
-      hasTravelInsurance: policies.some(p => p.insurance_type === 'travel'),
+      hasHealthInsurance: policies.some(p => p.policy_type === 'health'),
+      hasLifeInsurance: policies.some(p => p.policy_type === 'life' || p.policy_type === 'term_life'),
+      hasCarInsurance: policies.some(p => p.policy_type === 'car'),
+      hasTwoWheelerInsurance: policies.some(p => p.policy_type === 'two_wheeler'),
+      hasHomeInsurance: policies.some(p => p.policy_type === 'home'),
+      hasTravelInsurance: policies.some(p => p.policy_type === 'travel'),
     };
   }
 
