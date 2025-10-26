@@ -386,15 +386,18 @@ export async function predictInsuranceML(data: Partial<MLModelRequest>): Promise
     console.log('  - Est. Monthly Premium: ₹' + HuggingFaceMLService.calculateMonthlyPremiumFromCLV(result.customer_lifetime_value, data.policy_period_years || 20));
     console.log('');
 
-    console.log('📈 Derived Features (Auto-calculated):');
-    console.log('  - BMI:', result.derived_features.bmi.toFixed(2));
-    console.log('  - BMI Category:', result.derived_features.bmi_category);
-    console.log('  - Has Diabetes:', result.derived_features.has_diabetes);
-    console.log('  - Has Hypertension:', result.derived_features.has_hypertension);
-    console.log('  - Health Risk Score:', (result.derived_features.overall_health_risk_score * 100).toFixed(2) + '%');
-    console.log('  - Financial Risk Score:', (result.derived_features.financial_risk_score * 100).toFixed(2) + '%');
-    console.log('  - Annual Income (Midpoint): ₹' + result.derived_features.annual_income_midpoint.toLocaleString());
-    console.log('');
+    // Only log derived features if they exist
+    if (result.derived_features) {
+      console.log('📈 Derived Features (Auto-calculated):');
+      console.log('  - BMI:', result.derived_features.bmi?.toFixed(2));
+      console.log('  - BMI Category:', result.derived_features.bmi_category);
+      console.log('  - Has Diabetes:', result.derived_features.has_diabetes);
+      console.log('  - Has Hypertension:', result.derived_features.has_hypertension);
+      console.log('  - Health Risk Score:', (result.derived_features.overall_health_risk_score * 100).toFixed(2) + '%');
+      console.log('  - Financial Risk Score:', (result.derived_features.financial_risk_score * 100).toFixed(2) + '%');
+      console.log('  - Annual Income (Midpoint): ₹' + result.derived_features.annual_income_midpoint?.toLocaleString());
+      console.log('');
+    }
 
     console.log('━'.repeat(80));
     console.log('🎉 ML PREDICTION COMPLETE!');
