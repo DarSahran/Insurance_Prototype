@@ -10,12 +10,13 @@ import { saveInsuranceQuestionnaire, updateQuestionnaire, getLatestQuestionnaire
 
 interface QuestionnaireWizardProps {
   onComplete: (data: any) => void;
-  onBack: () => void;
+  insuranceType?: string;
+  onBack?: () => void;
   initialData?: any;
   isDashboardMode?: boolean;
 }
 
-const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, onBack, initialData = {}, isDashboardMode = false }) => {
+const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({ onComplete, insuranceType = 'term_life', onBack, initialData = {}, isDashboardMode = false }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     demographics: initialData.demographics || {},

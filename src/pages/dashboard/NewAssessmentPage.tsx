@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Heart, TrendingUp, Car, Bike, Users, Plane, PiggyBank, Home, ArrowLeft } from 'lucide-react';
-import QuestionnaireWizard from '../../components/QuestionnaireWizard';
+import TypeSpecificQuestionnaire from '../../components/TypeSpecificQuestionnaire';
 
 const INSURANCE_TYPES = [
   { id: 'term_life', name: 'Term Life Insurance', icon: Shield, color: 'blue', description: 'Secure your family\'s future with comprehensive life coverage' },
@@ -33,21 +33,44 @@ const NewAssessmentPage: React.FC = () => {
   };
 
   const handleComplete = () => {
-    navigate('/dashboard/assessments');
+    navigate('/dashboard/ml-recommendations');
   };
 
   if (selectedType) {
+    const selectedInsurance = INSURANCE_TYPES.find(t => t.id === selectedType);
+
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             Back to Insurance Types
           </button>
-          <QuestionnaireWizard insuranceType={selectedType} onComplete={handleComplete} />
+
+          {/* Assessment Header */}
+          <div className="mb-6 bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-600">
+            <div className="flex items-center gap-4">
+              {selectedInsurance && (
+                <>
+                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br from-${selectedInsurance.color}-500 to-${selectedInsurance.color}-600 flex items-center justify-center`}>
+                    <selectedInsurance.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{selectedInsurance.name}</h2>
+                    <p className="text-gray-600 text-sm">{selectedInsurance.description}</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <TypeSpecificQuestionnaire
+            insuranceType={selectedType}
+            onComplete={handleComplete}
+          />
         </div>
       </div>
     );
