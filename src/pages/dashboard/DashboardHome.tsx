@@ -261,7 +261,7 @@ const DashboardHome: React.FC = () => {
                     Based on your assessment, we can recommend the best insurance policies for you.
                   </p>
                   <Link
-                    to="/dashboard/ai-recommendations"
+                    to="/dashboard/ml-recommendations"
                     className="inline-flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     <span>View Recommendations</span>
@@ -281,7 +281,7 @@ const DashboardHome: React.FC = () => {
               </p>
               <div className="flex items-center justify-center space-x-4">
                 <Link
-                  to="/dashboard/ai-recommendations"
+                  to="/dashboard/ml-recommendations"
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
                 >
                   <Shield className="w-5 h-5" />
@@ -602,7 +602,7 @@ const DashboardHome: React.FC = () => {
 
             <div className="space-y-3">
               <Link
-                to="/dashboard/ai-recommendations"
+                to="/dashboard/ml-recommendations"
                 className="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors group"
               >
                 <div className="flex items-center space-x-3">
