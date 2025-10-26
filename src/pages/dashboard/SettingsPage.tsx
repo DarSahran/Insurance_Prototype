@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
-import { 
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import {
   Settings, User, Bell, Shield, CreditCard, Eye,
   Smartphone, Download, Trash2, Save, AlertTriangle,
-  Camera, Key, Database
+  Camera, Key, Database, Sparkles, Zap, Crown
 } from 'lucide-react';
+import { useHybridAuth } from '../../hooks/useHybridAuth';
+import SubscriptionService, { type SubscriptionTier, type UserSubscription, type MLUsageStatus } from '../../lib/subscriptionService';
+import { loadStripe } from '@stripe/stripe-js';
+import { supabase } from '../../lib/supabase';
 
 const SettingsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('profile');
+  const { user } = useHybridAuth();
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
   const [notifications, setNotifications] = useState({
     email: {
       policyUpdates: true,
@@ -34,8 +41,48 @@ const SettingsPage: React.FC = () => {
     thirdPartySharing: false
   });
 
+  const [subscriptionTiers, setSubscriptionTiers] = useState<SubscriptionTier[]>([]);
+  const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
+  const [usageStatus, setUsageStatus] = useState<MLUsageStatus | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (user && activeTab === 'subscription') {
+      loadSubscriptionData();
+    }
+  }, [user, activeTab]);
+
+  const loadSubscriptionData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const [tiers, subscription, usage] = await Promise.all([
+        SubscriptionService.getSubscriptionTiers(),
+        SubscriptionService.getUserSubscription(user.id),
+        SubscriptionService.checkMLUsageLimit(user.id)
+      ]);
+
+      setSubscriptionTiers(tiers);
+      setCurrentSubscription(subscription);
+      setUsageStatus(usage);
+    } catch (error) {
+      console.error('Error loading subscription data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User },
+    { id: 'subscription', name: 'Subscription', icon: Crown },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'privacy', name: 'Privacy & Security', icon: Shield },
     { id: 'payments', name: 'Payment Methods', icon: CreditCard },
@@ -412,9 +459,202 @@ const SettingsPage: React.FC = () => {
     </div>
   );
 
+  const handleUpgrade = async (tier: SubscriptionTier) => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Please log in to upgrade your subscription');
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            priceId: tier.stripe_price_id_monthly,
+            userId: user.id,
+            tierName: tier.name
+          }),
+        }
+      );
+
+      const { sessionId, error } = await response.json();
+
+      if (error) {
+        alert(`Error: ${error}`);
+        return;
+      }
+
+      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
+      if (stripe) {
+        await stripe.redirectToCheckout({ sessionId });
+      }
+    } catch (error) {
+      console.error('Error upgrading subscription:', error);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!user || !currentSubscription) return;
+
+    if (!confirm('Are you sure you want to cancel your subscription? It will remain active until the end of your billing period.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await SubscriptionService.cancelSubscription(user.id, true);
+      await loadSubscriptionData();
+      alert('Subscription cancelled successfully. It will remain active until the end of your billing period.');
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      alert('Failed to cancel subscription. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderSubscriptionTab = () => {
+    const currentTierName = currentSubscription?.tier?.name || 'basic';
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Subscription Plan</h2>
+          <p className="text-gray-600 mb-6">Choose the plan that fits your insurance needs</p>
+
+          {usageStatus && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">ML Assessments This Week</span>
+                <span className="text-sm font-semibold text-blue-600">
+                  {usageStatus.queries_used} / {usageStatus.queries_limit}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{ width: `${(usageStatus.queries_used / usageStatus.queries_limit) * 100}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Resets weekly on {new Date(usageStatus.week_start).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {subscriptionTiers.map((tier) => {
+              const isCurrentTier = tier.name === currentTierName;
+              const isBetterTier = tier.price_monthly > (currentSubscription?.tier?.price_monthly || 0);
+
+              return (
+                <div
+                  key={tier.id}
+                  className={`relative border-2 rounded-xl p-6 ${
+                    isCurrentTier
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  {isCurrentTier && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        Current Plan
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="text-center mb-6">
+                    <div className="text-4xl mb-2">
+                      {tier.name === 'basic' && '⭐'}
+                      {tier.name === 'pro' && '✨'}
+                      {tier.name === 'ultra' && '🚀'}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">{tier.display_name}</h3>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                      ₹{tier.price_monthly}
+                      <span className="text-lg text-gray-600">/mo</span>
+                    </div>
+                    {tier.price_yearly && (
+                      <p className="text-sm text-gray-600">
+                        or ₹{tier.price_yearly}/year (save 17%)
+                      </p>
+                    )}
+                  </div>
+
+                  <ul className="space-y-3 mb-6">
+                    {tier.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start space-x-2 text-sm">
+                        <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    onClick={() => !isCurrentTier && isBetterTier && handleUpgrade(tier)}
+                    disabled={isCurrentTier || loading || !isBetterTier}
+                    className={`w-full py-3 rounded-lg font-semibold transition-colors ${
+                      isCurrentTier
+                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                        : isBetterTier
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                    }`}
+                  >
+                    {isCurrentTier ? 'Current Plan' : isBetterTier ? 'Upgrade' : 'Downgrade'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {currentSubscription && currentSubscription.status === 'active' && (
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-1">Manage Subscription</h4>
+                  <p className="text-sm text-gray-600">
+                    {currentSubscription.cancel_at_period_end
+                      ? `Your subscription will be cancelled on ${new Date(currentSubscription.current_period_end!).toLocaleDateString()}`
+                      : `Next billing date: ${new Date(currentSubscription.current_period_end!).toLocaleDateString()}`
+                    }
+                  </p>
+                </div>
+                {!currentSubscription.cancel_at_period_end && (
+                  <button
+                    onClick={handleCancelSubscription}
+                    disabled={loading}
+                    className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    Cancel Subscription
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'profile': return renderProfileTab();
+      case 'subscription': return renderSubscriptionTab();
       case 'notifications': return renderNotificationsTab();
       case 'privacy': return renderPrivacyTab();
       case 'data': return renderDataTab();
