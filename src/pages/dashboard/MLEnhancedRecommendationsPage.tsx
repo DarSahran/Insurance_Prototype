@@ -11,6 +11,7 @@ import { HybridInsuranceService, type HybridInsuranceAnalysis } from '../../lib/
 import AIInsuranceChatbot from '../../components/AIInsuranceChatbot';
 import { supabase } from '../../lib/supabase';
 import SubscriptionService, { type MLUsageStatus } from '../../lib/subscriptionService';
+import PolicyRecommendationService, { type PolicyRecommendation } from '../../lib/policyRecommendationService';
 
 const MLEnhancedRecommendationsPage: React.FC = () => {
   const { user } = useHybridAuth();
@@ -24,6 +25,7 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
   const [progressiveUpdate, setProgressiveUpdate] = useState(false);
   const [usageStatus, setUsageStatus] = useState<MLUsageStatus | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [policyRecommendations, setPolicyRecommendations] = useState<PolicyRecommendation[]>([]);
 
   useEffect(() => {
     loadUserData();
@@ -63,30 +65,59 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
       setQuestionnaireData(questionnaire);
 
       if (questionnaire.ml_risk_category !== null) {
+        const mlParams = questionnaire.ml_parameters || {};
         const health = questionnaire.health || {};
-        const bmi = health.height_cm && health.weight_kg
-          ? (health.weight_kg / Math.pow(health.height_cm / 100, 2)).toFixed(1)
-          : null;
-        const bmiCategory = bmi
-          ? (parseFloat(bmi) < 18.5 ? 'Underweight' : parseFloat(bmi) < 25 ? 'Normal' : parseFloat(bmi) < 30 ? 'Overweight' : 'Obese')
-          : 'N/A';
 
-        const hasDiabetes = health.blood_sugar_fasting > 126 || health.condition_diabetes;
-        const hasHypertension = health.blood_pressure_systolic > 140 || health.blood_pressure_diastolic > 90 || health.condition_hypertension;
+        const heightCm = mlParams.height_cm || health.height_cm || 0;
+        const weightKg = mlParams.weight_kg || health.weight_kg || 0;
+        const bmi = heightCm && weightKg
+          ? (weightKg / Math.pow(heightCm / 100, 2))
+          : 24.2;
+        const bmiCategory = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
+
+        const bloodSugar = mlParams.blood_sugar_fasting || health.blood_sugar_fasting || 0;
+        const bpSystolic = mlParams.blood_pressure_systolic || health.blood_pressure_systolic || 0;
+        const bpDiastolic = mlParams.blood_pressure_diastolic || health.blood_pressure_diastolic || 0;
+
+        const hasDiabetes = bloodSugar > 126 || mlParams.condition_diabetes || health.condition_diabetes;
+        const hasHypertension = bpSystolic > 140 || bpDiastolic > 90 || mlParams.condition_hypertension || health.condition_hypertension;
+
+        const healthRiskFactors = [
+          hasDiabetes ? 0.15 : 0,
+          hasHypertension ? 0.12 : 0,
+          (mlParams.smoking_status || health.smoking_status) !== 'Never' ? 0.10 : 0,
+          bmi >= 30 ? 0.08 : bmi >= 25 ? 0.05 : 0,
+        ].reduce((a, b) => a + b, 0);
 
         const derivedFeatures = {
-          bmi: bmi ? parseFloat(bmi) : null,
+          bmi: parseFloat(bmi.toFixed(1)),
           bmiCategory,
           hasDiabetes,
           hasHypertension,
-          overallHealthRiskScore: questionnaire.ml_derived_features?.overall_health_risk_score || 0.27
+          overallHealthRiskScore: healthRiskFactors
         };
+        const riskProbs = questionnaire.ml_risk_probabilities || { Low: 0.7, Medium: 0.25, High: 0.05 };
+        const highestRiskProb = Math.max(riskProbs.Low || 0, riskProbs.Medium || 0, riskProbs.High || 0);
+        const riskScoreFromProb = Math.round(highestRiskProb * 100);
+
+        const demographics = questionnaire.demographics || {};
+        const policies = await PolicyRecommendationService.getRecommendedPolicies(user.id, {
+          riskCategory: questionnaire.ml_risk_category,
+          age: mlParams.age || demographics.age || 30,
+          maritalStatus: mlParams.marital_status || demographics.marital_status || 'Single',
+          hasChildren: (mlParams.dependent_children_count || 0) > 0,
+          annualIncome: mlParams.annual_income_range || 'Below 5L',
+          occupation: mlParams.occupation_type || 'Professional',
+          city: mlParams.city || 'Mumbai'
+        });
+        setPolicyRecommendations(policies);
+
         setAnalysis({
           mlPrediction: {
             riskCategory: questionnaire.ml_risk_category,
-            riskScore: getRiskScoreFromCategory(questionnaire.ml_risk_category),
+            riskScore: riskScoreFromProb,
             riskConfidence: questionnaire.ml_risk_confidence || 0.85,
-            riskProbabilities: questionnaire.ml_risk_probabilities || { Low: 0.7, Medium: 0.25, High: 0.05 },
+            riskProbabilities: riskProbs,
             customerLifetimeValue: questionnaire.ml_customer_lifetime_value || 0,
             monthlyPremium: questionnaire.ml_monthly_premium || questionnaire.premium_estimate || 96,
             derivedFeatures,
@@ -98,7 +129,7 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
             premiumOptimization: { currentEstimate: 0, potentialSavings: 0, recommendations: [] },
           },
           combinedInsights: {
-            finalRiskScore: getRiskScoreFromCategory(questionnaire.ml_risk_category),
+            finalRiskScore: riskScoreFromProb,
             finalRiskLevel: questionnaire.ml_risk_category,
             finalPremiumEstimate: questionnaire.ml_monthly_premium || questionnaire.premium_estimate || 96,
             confidenceScore: Math.round((questionnaire.ml_risk_confidence || 0.85) * 100),
@@ -611,11 +642,11 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">BMI</span>
-                    <span className="font-semibold">{analysis.mlPrediction.derivedFeatures?.bmi?.toFixed(1) || 'N/A'}</span>
+                    <span className="font-semibold">{analysis.mlPrediction.derivedFeatures?.bmi?.toFixed(1)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">Category</span>
-                    <span className="font-semibold">{analysis.mlPrediction.derivedFeatures?.bmiCategory || 'N/A'}</span>
+                    <span className="font-semibold">{analysis.mlPrediction.derivedFeatures?.bmiCategory}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">Diabetes Risk</span>
@@ -653,36 +684,50 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-900">Recommended Insurance Policies</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {analysis.geminiEnhancement.eligiblePolicies.slice(0, 3).map((policy, index) => (
-                  <div key={index} className="border border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">{policy.policyType}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        policy.priority === 'high' ? 'bg-green-100 text-green-700' :
-                        policy.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {policy.priority}
-                      </span>
+              {policyRecommendations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {policyRecommendations.map((policy) => (
+                    <div key={policy.id} className="border border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">{policy.insurance_type}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          policy.priority === 'high' ? 'bg-green-100 text-green-700' :
+                          policy.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {policy.priority}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">{policy.provider_name}</div>
+                      <div className="text-sm font-medium text-gray-700 mb-3">{policy.policy_name}</div>
+                      <div className="text-3xl font-bold text-blue-600 mb-4">
+                        ₹{policy.monthly_premium}<span className="text-lg text-gray-500">/mo</span>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-4">
+                        Coverage: ₹{(policy.coverage_amount / 100000).toFixed(1)}L
+                      </div>
+                      <div className="space-y-2 mb-4">
+                        {policy.key_features.slice(0, 3).map((feature, i) => (
+                          <div key={i} className="flex items-start space-x-2">
+                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm text-gray-700">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => navigate(`/policy/${policy.id}`)}
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Learn More
+                      </button>
                     </div>
-                    <div className="text-3xl font-bold text-blue-600 mb-4">
-                      ₹{policy.monthlyPremium}<span className="text-lg text-gray-500">/mo</span>
-                    </div>
-                    <div className="space-y-2 mb-4">
-                      {policy.benefits.slice(0, 3).map((benefit: string, i: number) => (
-                        <div key={i} className="flex items-start space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-gray-700">{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                      Learn More
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">Loading personalized policy recommendations...</p>
+                </div>
+              )}
             </div>
           </>
         )}
