@@ -177,22 +177,6 @@ const DashboardLayout: React.FC = () => {
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                     </div>
                     <Link
-                      to="/dashboard/profile"
-                      className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
-                        location.pathname === '/dashboard/profile'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                      onClick={() => setProfileDropdownOpen(false)}
-                    >
-                      <User className={`w-4 h-4 mr-3 ${
-                        location.pathname === '/dashboard/profile'
-                          ? 'text-blue-600'
-                          : 'text-gray-400'
-                      }`} />
-                      Your Profile
-                    </Link>
-                    <Link
                       to="/dashboard/settings"
                       className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
                         location.pathname === '/dashboard/settings'
