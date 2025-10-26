@@ -29,10 +29,11 @@ export interface RiskAnalysis {
 }
 
 export class RiskAnalysisService {
-  static async analyzeUserRisk(userId: string): Promise<RiskAnalysis> {
-    const [questionnaires, healthTracking] = await Promise.all([
+  static async analyzeUserRisk(userId: string, saveToHistory: boolean = false): Promise<RiskAnalysis> {
+    const [questionnaires, healthTracking, riskHistory] = await Promise.all([
       this.getLatestQuestionnaire(userId),
-      HealthTrackingService.getUserHealthTracking(userId, 30)
+      HealthTrackingService.getUserHealthTracking(userId, 30),
+      this.getRiskHistory(userId, 2)
     ]);
 
     const latestQuestionnaire = questionnaires[0];
@@ -54,14 +55,31 @@ export class RiskAnalysisService {
     );
 
     const riskFactors = [
-      this.buildHealthRiskFactor(healthScore, latestQuestionnaire.health, healthTracking),
-      this.buildLifestyleRiskFactor(lifestyleScore, latestQuestionnaire.lifestyle),
-      this.buildFinancialRiskFactor(financialScore, latestQuestionnaire.financial),
-      this.buildDemographicRiskFactor(demographicScore, latestQuestionnaire.demographics)
+      this.buildHealthRiskFactor(healthScore, latestQuestionnaire.health, healthTracking, riskHistory),
+      this.buildLifestyleRiskFactor(lifestyleScore, latestQuestionnaire.lifestyle, riskHistory),
+      this.buildFinancialRiskFactor(financialScore, latestQuestionnaire.financial, riskHistory),
+      this.buildDemographicRiskFactor(demographicScore, latestQuestionnaire.demographics, riskHistory)
     ];
 
     const predictions = this.generateRiskPredictions(overallScore, riskFactors);
     const recommendations = this.generateRecommendations(riskFactors);
+
+    if (saveToHistory) {
+      await this.saveToRiskHistory(userId, {
+        overallScore,
+        healthScore: 100 - healthScore,
+        lifestyleScore: 100 - lifestyleScore,
+        financialScore: 100 - financialScore,
+        demographicScore: 100 - demographicScore,
+        category: this.getRiskCategory(overallScore),
+        questionnaireId: latestQuestionnaire.id,
+        factors: riskFactors
+      });
+
+      if (riskHistory.length > 0) {
+        await this.checkAndCreateAlerts(userId, riskHistory[0].overall_score, overallScore);
+      }
+    }
 
     return {
       overallScore,
@@ -81,6 +99,70 @@ export class RiskAnalysisService {
       .limit(2);
 
     return data || [];
+  }
+
+  private static async getRiskHistory(userId: string, limit: number = 10) {
+    const { data } = await supabase
+      .from('risk_history')
+      .select('*')
+      .eq('user_id', userId)
+      .order('calculated_at', { ascending: false })
+      .limit(limit);
+
+    return data || [];
+  }
+
+  private static async saveToRiskHistory(userId: string, riskData: any) {
+    const { error } = await supabase
+      .from('risk_history')
+      .insert({
+        user_id: userId,
+        overall_score: riskData.overallScore,
+        risk_category: riskData.category,
+        health_score: riskData.healthScore,
+        lifestyle_score: riskData.lifestyleScore,
+        financial_score: riskData.financialScore,
+        demographic_score: riskData.demographicScore,
+        questionnaire_id: riskData.questionnaireId,
+        contributing_factors: riskData.factors
+      });
+
+    if (error) {
+      console.error('Error saving risk history:', error);
+    }
+  }
+
+  private static async checkAndCreateAlerts(userId: string, previousScore: number, currentScore: number) {
+    const scoreDiff = currentScore - previousScore;
+    const percentChange = Math.abs((scoreDiff / previousScore) * 100);
+
+    if (percentChange >= 10) {
+      const alertType = scoreDiff > 0 ? 'risk_increase' : 'risk_decrease';
+      const severity = percentChange >= 20 ? 'high' : percentChange >= 15 ? 'medium' : 'low';
+
+      await supabase.from('risk_alerts').insert({
+        user_id: userId,
+        alert_type: alertType,
+        severity,
+        title: scoreDiff > 0 ? 'Risk Score Increased' : 'Risk Score Improved',
+        message: `Your risk score has ${scoreDiff > 0 ? 'increased' : 'decreased'} by ${Math.abs(scoreDiff)} points (${percentChange.toFixed(1)}%)`,
+        previous_score: previousScore,
+        current_score: currentScore
+      });
+    }
+
+    if (currentScore >= 70 && previousScore < 70) {
+      await supabase.from('risk_alerts').insert({
+        user_id: userId,
+        alert_type: 'threshold_crossed',
+        severity: 'critical',
+        title: 'High Risk Threshold Reached',
+        message: 'Your risk score has crossed into the high-risk category. Consider scheduling a health assessment.',
+        previous_score: previousScore,
+        current_score: currentScore,
+        threshold_value: 70
+      });
+    }
   }
 
   private static async calculateHealthScore(userId: string, healthTracking: any[]): Promise<number> {
@@ -198,66 +280,132 @@ export class RiskAnalysisService {
     return Math.max(Math.min(score, 100), 0);
   }
 
-  private static buildHealthRiskFactor(score: number, health: any, tracking: any[]): RiskFactor {
+  private static buildHealthRiskFactor(score: number, health: any, tracking: any[], history: any[]): RiskFactor {
     const latestMetrics = tracking[0]?.health_metrics || {};
+    const previousHealthScore = history[0]?.health_score || 100 - score;
+    const currentHealthScore = 100 - score;
+    const trend = this.calculateTrend(previousHealthScore, currentHealthScore);
+
+    const heartRateStatus = this.getHealthMetricStatus(latestMetrics.heartRate, 60, 75, 'range');
+    const stepsStatus = this.getHealthMetricStatus(latestMetrics.steps, 10000, null, 'minimum');
+    const sleepStatus = this.getHealthMetricStatus(latestMetrics.sleep, 7, 9, 'range');
+    const bmiStatus = this.getHealthMetricStatus(health?.bmi, null, 25, 'maximum');
 
     return {
       category: 'Health',
-      currentScore: 100 - score,
-      trend: 'stable',
+      currentScore: currentHealthScore,
+      previousScore: previousHealthScore,
+      trend,
       impact: 'high',
       factors: [
-        { name: 'Heart Rate', value: latestMetrics.heartRate || 'N/A', status: 'good', target: '60-75 bpm' },
-        { name: 'Daily Steps', value: latestMetrics.steps || 'N/A', status: 'good', target: '10,000 steps' },
-        { name: 'Sleep Quality', value: latestMetrics.sleep || 'N/A', status: 'good', target: '7-9 hours' },
-        { name: 'BMI', value: health?.bmi || 'N/A', status: 'good', target: '<25' }
+        { name: 'Heart Rate', value: latestMetrics.heartRate || 'N/A', status: heartRateStatus, target: '60-75 bpm' },
+        { name: 'Daily Steps', value: latestMetrics.steps || 'N/A', status: stepsStatus, target: '10,000 steps' },
+        { name: 'Sleep Quality', value: latestMetrics.sleep ? `${latestMetrics.sleep} hrs` : 'N/A', status: sleepStatus, target: '7-9 hours' },
+        { name: 'BMI', value: health?.bmi || 'N/A', status: bmiStatus, target: '<25' }
       ]
     };
   }
 
-  private static buildLifestyleRiskFactor(score: number, lifestyle: any): RiskFactor {
+  private static buildLifestyleRiskFactor(score: number, lifestyle: any, history: any[]): RiskFactor {
+    const previousLifestyleScore = history[0]?.lifestyle_score || 100 - score;
+    const currentLifestyleScore = 100 - score;
+    const trend = this.calculateTrend(previousLifestyleScore, currentLifestyleScore);
+
+    const smokingStatus = lifestyle.smokingStatus === 'never' ? 'excellent' : lifestyle.smokingStatus === 'former_smoker' ? 'good' : 'poor';
+    const alcoholStatus = !lifestyle.alcoholConsumption || lifestyle.alcoholConsumption === 'none' ? 'excellent' : lifestyle.alcoholConsumption === 'moderate' ? 'good' : 'caution';
+    const exerciseStatus = (lifestyle.exerciseFrequency || 0) >= 4 ? 'excellent' : (lifestyle.exerciseFrequency || 0) >= 3 ? 'good' : 'caution';
+    const stressStatus = (lifestyle.stressLevel || 5) <= 4 ? 'good' : (lifestyle.stressLevel || 5) <= 6 ? 'caution' : 'poor';
+
     return {
       category: 'Lifestyle',
-      currentScore: 100 - score,
-      trend: 'stable',
+      currentScore: currentLifestyleScore,
+      previousScore: previousLifestyleScore,
+      trend,
       impact: 'medium',
       factors: [
-        { name: 'Smoking Status', value: lifestyle.smokingStatus || 'Never', status: 'excellent', target: 'Never' },
-        { name: 'Alcohol', value: lifestyle.alcoholConsumption || 'None', status: 'good', target: 'Moderate' },
-        { name: 'Exercise', value: `${lifestyle.exerciseFrequency || 0}x/week`, status: 'good', target: '3x/week' },
-        { name: 'Stress Level', value: `${lifestyle.stressLevel || 5}/10`, status: 'good', target: '<5/10' }
+        { name: 'Smoking Status', value: lifestyle.smokingStatus || 'Never', status: smokingStatus, target: 'Never' },
+        { name: 'Alcohol', value: lifestyle.alcoholConsumption || 'None', status: alcoholStatus, target: 'Moderate' },
+        { name: 'Exercise', value: `${lifestyle.exerciseFrequency || 0}x/week`, status: exerciseStatus, target: '3x/week' },
+        { name: 'Stress Level', value: `${lifestyle.stressLevel || 5}/10`, status: stressStatus, target: '<5/10' }
       ]
     };
   }
 
-  private static buildFinancialRiskFactor(score: number, financial: any): RiskFactor {
+  private static buildFinancialRiskFactor(score: number, financial: any, history: any[]): RiskFactor {
+    const previousFinancialScore = history[0]?.financial_score || 100 - score;
+    const currentFinancialScore = 100 - score;
+    const trend = this.calculateTrend(previousFinancialScore, currentFinancialScore);
+
+    const emergencyFundStatus = financial.emergencyFund ? 'good' : 'caution';
+    const coverageStatus = financial.existingCoverage ? 'good' : 'neutral';
+
     return {
       category: 'Financial',
-      currentScore: 100 - score,
-      trend: 'stable',
+      currentScore: currentFinancialScore,
+      previousScore: previousFinancialScore,
+      trend,
       impact: 'medium',
       factors: [
         { name: 'Income Stability', value: 'Stable', status: 'good', target: 'Stable' },
-        { name: 'Emergency Fund', value: financial.emergencyFund ? '6 months' : 'None', status: 'good', target: '3-6 months' },
-        { name: 'Existing Coverage', value: financial.existingCoverage ? 'Yes' : 'No', status: 'neutral', target: 'Yes' }
+        { name: 'Emergency Fund', value: financial.emergencyFund ? '3-6 months' : 'None', status: emergencyFundStatus, target: '3-6 months' },
+        { name: 'Existing Coverage', value: financial.existingCoverage ? 'Yes' : 'No', status: coverageStatus, target: 'Yes' }
       ]
     };
   }
 
-  private static buildDemographicRiskFactor(score: number, demographics: any): RiskFactor {
+  private static buildDemographicRiskFactor(score: number, demographics: any, history: any[]): RiskFactor {
     const age = this.calculateAge(demographics.dateOfBirth);
+    const previousDemographicScore = history[0]?.demographic_score || 100 - score;
+    const currentDemographicScore = 100 - score;
+    const trend = this.calculateTrend(previousDemographicScore, currentDemographicScore);
+
+    const ageStatus = age >= 25 && age <= 55 ? 'good' : age > 65 ? 'caution' : 'neutral';
 
     return {
       category: 'Demographic',
-      currentScore: 100 - score,
-      trend: 'stable',
+      currentScore: currentDemographicScore,
+      previousScore: previousDemographicScore,
+      trend,
       impact: 'low',
       factors: [
-        { name: 'Age', value: age, status: 'good', target: 'N/A' },
+        { name: 'Age', value: age, status: ageStatus, target: 'N/A' },
         { name: 'Occupation', value: demographics.occupation || 'Unknown', status: 'good', target: 'Low risk' },
         { name: 'Location', value: demographics.location || 'Unknown', status: 'good', target: 'N/A' }
       ]
     };
+  }
+
+  private static calculateTrend(previousScore: number, currentScore: number): 'improving' | 'declining' | 'stable' {
+    const diff = currentScore - previousScore;
+    if (Math.abs(diff) < 3) return 'stable';
+    return diff < 0 ? 'improving' : 'declining';
+  }
+
+  private static getHealthMetricStatus(value: any, min: number | null, max: number | null, type: 'range' | 'minimum' | 'maximum'): string {
+    if (!value || value === 'N/A') return 'neutral';
+
+    const numValue = typeof value === 'number' ? value : parseFloat(value);
+    if (isNaN(numValue)) return 'neutral';
+
+    if (type === 'range' && min !== null && max !== null) {
+      if (numValue >= min && numValue <= max) return 'excellent';
+      if (numValue >= min - 5 && numValue <= max + 5) return 'good';
+      return 'caution';
+    }
+
+    if (type === 'minimum' && min !== null) {
+      if (numValue >= min) return 'excellent';
+      if (numValue >= min * 0.75) return 'good';
+      return 'caution';
+    }
+
+    if (type === 'maximum' && max !== null) {
+      if (numValue <= max) return 'excellent';
+      if (numValue <= max * 1.1) return 'good';
+      return 'caution';
+    }
+
+    return 'neutral';
   }
 
   private static generateRiskPredictions(currentScore: number, factors: RiskFactor[]) {

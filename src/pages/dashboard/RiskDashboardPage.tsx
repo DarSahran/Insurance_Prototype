@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Target, TrendingUp, TrendingDown, AlertTriangle,
   Shield, Heart, Activity, Brain, Calendar, Filter,
-  Eye, Download, RefreshCw, CheckCircle, Clock, Loader
+  Eye, Download, RefreshCw, CheckCircle, Clock, Loader, Wifi, WifiOff
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useAuth } from '../../hooks/useAuth';
 import { RiskAnalysisService, type RiskAnalysis } from '../../lib/riskAnalysisService';
+import { supabase } from '../../lib/supabase';
 
 const RiskDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -16,12 +17,13 @@ const RiskDashboardPage: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [riskAnalysis, setRiskAnalysis] = useState<RiskAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isRealTimeConnected, setIsRealTimeConnected] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [unacknowledgedAlerts, setUnacknowledgedAlerts] = useState<number>(0);
+  const subscriptionRef = useRef<any>(null);
+  const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    loadRiskData();
-  }, [user]);
-
-  const loadRiskData = async () => {
+  const loadRiskData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -29,18 +31,130 @@ const RiskDashboardPage: React.FC = () => {
       setError(null);
       const analysis = await RiskAnalysisService.analyzeUserRisk(user.id);
       setRiskAnalysis(analysis);
+      setLastUpdated(new Date());
+
+      await loadUnacknowledgedAlerts();
     } catch (err) {
       console.error('Error loading risk data:', err);
       setError('Failed to load risk analysis. Please complete an insurance assessment first.');
     } finally {
       setLoading(false);
     }
+  }, [user]);
+
+  const loadUnacknowledgedAlerts = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('risk_alerts')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_acknowledged', false);
+
+    if (!error && data) {
+      setUnacknowledgedAlerts(data.length || 0);
+    }
   };
+
+  useEffect(() => {
+    loadRiskData();
+  }, [loadRiskData]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const setupRealtimeSubscriptions = async () => {
+      const healthChannel = supabase
+        .channel('health-tracking-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'health_tracking',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            console.log('Health tracking updated - refreshing risk data');
+            loadRiskData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'insurance_questionnaires',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            console.log('Questionnaire updated - refreshing risk data');
+            loadRiskData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'risk_alerts',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            console.log('New risk alert received');
+            loadUnacknowledgedAlerts();
+            loadRiskData();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            setIsRealTimeConnected(true);
+            console.log('Real-time subscriptions active');
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            setIsRealTimeConnected(false);
+            console.log('Real-time connection lost');
+          }
+        });
+
+      subscriptionRef.current = healthChannel;
+    };
+
+    setupRealtimeSubscriptions();
+
+    autoRefreshRef.current = setInterval(() => {
+      console.log('Auto-refresh triggered');
+      loadRiskData();
+    }, 5 * 60 * 1000);
+
+    return () => {
+      if (subscriptionRef.current) {
+        supabase.removeChannel(subscriptionRef.current);
+      }
+      if (autoRefreshRef.current) {
+        clearInterval(autoRefreshRef.current);
+      }
+    };
+  }, [user, loadRiskData]);
+
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadRiskData();
     setRefreshing(false);
+  };
+
+  const acknowledgeAlerts = async () => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('risk_alerts')
+      .update({ is_acknowledged: true, acknowledged_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .eq('is_acknowledged', false);
+
+    if (!error) {
+      setUnacknowledgedAlerts(0);
+    }
   };
 
   const getTrendIcon = (trend: string) => {
@@ -107,9 +221,33 @@ const RiskDashboardPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Risk Monitoring Dashboard</h1>
-          <p className="text-gray-600">Dashboard &gt; Risk Monitoring</p>
+          <p className="text-gray-600 flex items-center space-x-2">
+            <span>Dashboard &gt; Risk Monitoring</span>
+            <span className="flex items-center space-x-1">
+              {isRealTimeConnected ? (
+                <>
+                  <Wifi className="w-3 h-3 text-green-600" />
+                  <span className="text-xs text-green-600">Live</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3 text-gray-400" />
+                  <span className="text-xs text-gray-400">Offline</span>
+                </>
+              )}
+            </span>
+          </p>
         </div>
         <div className="flex space-x-3">
+          {unacknowledgedAlerts > 0 && (
+            <button
+              onClick={acknowledgeAlerts}
+              className="flex items-center space-x-2 px-4 py-2 border border-orange-300 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span>{unacknowledgedAlerts} Alert{unacknowledgedAlerts > 1 ? 's' : ''}</span>
+            </button>
+          )}
           <button
             onClick={handleRefresh}
             disabled={refreshing}
@@ -238,8 +376,9 @@ const RiskDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-sm text-gray-500">
-            Last updated: {new Date().toLocaleString()}
+          <div className="text-sm text-gray-500 flex items-center space-x-2">
+            <Clock className="w-4 h-4" />
+            <span>Last updated: {lastUpdated.toLocaleString()}</span>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Database } from './supabase'
+import { RiskAnalysisService } from './riskAnalysisService'
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row']
 type InsuranceQuestionnaire = Database['public']['Tables']['insurance_questionnaires']['Row']
@@ -96,6 +97,15 @@ export const saveInsuranceQuestionnaire = async (questionnaireData: {
     .select()
     .single()
 
+  if (!error && data && questionnaireData.status === 'completed') {
+    try {
+      console.log('Questionnaire completed - triggering risk analysis and history save');
+      await RiskAnalysisService.analyzeUserRisk(questionnaireData.user_id, true);
+    } catch (analysisError) {
+      console.error('Error during automatic risk analysis:', analysisError);
+    }
+  }
+
   return { data, error }
 }
 
@@ -116,6 +126,15 @@ export const updateQuestionnaire = async (questionnaireId: string, updates: Part
     .eq('id', questionnaireId)
     .select()
     .single()
+
+  if (!error && data && updates.status === 'completed' && data.user_id) {
+    try {
+      console.log('Questionnaire updated to completed - triggering risk analysis and history save');
+      await RiskAnalysisService.analyzeUserRisk(data.user_id, true);
+    } catch (analysisError) {
+      console.error('Error during automatic risk analysis:', analysisError);
+    }
+  }
 
   return { data, error }
 }
