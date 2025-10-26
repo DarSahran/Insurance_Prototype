@@ -8,14 +8,19 @@ import {
 } from 'lucide-react';
 import { useUserData } from '../../hooks/useUserData';
 import { UserDataService } from '../../lib/userDataService';
+import { supabase } from '../../lib/supabase';
+import { useHybridAuth } from '../../hooks/useHybridAuth';
 
 const DashboardHome: React.FC = () => {
+  const { user } = useHybridAuth();
   const { userData, loading, firstName, policies, claims, questionnaires } = useUserData();
   const [stats, setStats] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [mlPrediction, setMlPrediction] = useState<any>(null);
+  const [mlLoading, setMlLoading] = useState(true);
 
   const latestQuestionnaire = questionnaires && questionnaires.length > 0
     ? questionnaires.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
@@ -23,12 +28,39 @@ const DashboardHome: React.FC = () => {
 
   useEffect(() => {
     loadStats();
-  }, [userData]);
+    loadMLPrediction();
+  }, [userData, user]);
 
   const loadStats = async () => {
     if (!userData?.profile) return;
     const userStats = await UserDataService.getUserStats(userData.profile.user_id);
     setStats(userStats);
+  };
+
+  const loadMLPrediction = async () => {
+    if (!user?.id) return;
+
+    setMlLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('ml_predictions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_successful', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading ML prediction:', error);
+      } else {
+        setMlPrediction(data);
+      }
+    } catch (err) {
+      console.error('Error loading ML prediction:', err);
+    } finally {
+      setMlLoading(false);
+    }
   };
 
   if (loading) {
@@ -180,21 +212,20 @@ const DashboardHome: React.FC = () => {
               <p className="text-xs text-gray-500 mt-1">per month</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-600">Risk Score</p>
-                <Target className="w-5 h-5 text-orange-600" />
+            {!mlLoading && mlPrediction && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-gray-600">Risk Score</p>
+                  <Target className="w-5 h-5 text-orange-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {mlPrediction.risk_category}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {Math.round(mlPrediction.risk_confidence * 100)}% confidence
+                </p>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {latestQuestionnaire?.risk_score || 'N/A'}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {latestQuestionnaire ? (
-                  latestQuestionnaire.risk_score < 40 ? 'Low Risk' :
-                  latestQuestionnaire.risk_score < 70 ? 'Medium Risk' : 'High Risk'
-                ) : 'Not assessed'}
-              </p>
-            </div>
+            )}
           </div>
 
           {!hasCompletedProfile && (
@@ -281,19 +312,13 @@ const DashboardHome: React.FC = () => {
               </p>
               <div className="flex items-center justify-center space-x-4">
                 <Link
-                  to="/dashboard/ml-recommendations"
+                  to="/browse-policies"
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
                 >
                   <Shield className="w-5 h-5" />
-                  <span>Get Recommendations</span>
+                  <span>Browse Policies</span>
                 </Link>
-                <Link
-                  to="/dashboard/assessment/new"
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center space-x-2"
-                >
-                  <FileText className="w-5 h-5" />
-                  <span>Complete Assessment</span>
-                </Link>
+             
               </div>
             </div>
           )}
@@ -535,25 +560,25 @@ const DashboardHome: React.FC = () => {
             </div>
 
             <p className="text-sm opacity-90 mb-4">
-              {latestQuestionnaire ?
-                `Based on your ${latestQuestionnaire.risk_score < 40 ? 'low' : latestQuestionnaire.risk_score < 70 ? 'medium' : 'high'} risk score`
+              {mlPrediction ?
+                `Based on your ${mlPrediction.risk_category.toLowerCase()} risk profile`
                 : 'Popular insurance products'}
             </p>
 
             {/* Product Carousel */}
             <div className="space-y-3">
               {(() => {
-                const riskScore = latestQuestionnaire?.risk_score || 50;
+                const riskCategory = mlPrediction?.risk_category || 'Medium';
                 const recommendations = [];
 
-                if (riskScore >= 70) {
+                if (riskCategory === 'High') {
                   // High risk - comprehensive coverage
                   recommendations.push(
                     { icon: Heart, name: 'Critical Illness Insurance', desc: 'Comprehensive health protection', color: 'bg-red-500' },
                     { icon: Shield, name: 'Life Insurance', desc: 'Secure your family\'s future', color: 'bg-blue-500' },
                     { icon: Activity, name: 'Accident Cover', desc: 'Protection against unforeseen events', color: 'bg-orange-500' }
                   );
-                } else if (riskScore >= 40) {
+                } else if (riskCategory === 'Medium') {
                   // Medium risk - balanced coverage
                   recommendations.push(
                     { icon: Heart, name: 'Health Insurance', desc: 'Medical coverage for peace of mind', color: 'bg-green-500' },
@@ -636,25 +661,25 @@ const DashboardHome: React.FC = () => {
             </div>
           </div>
 
-          {latestQuestionnaire && (
+          {!mlLoading && mlPrediction && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Latest Assessment</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">ML Risk Assessment</h3>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Risk Score</p>
+                  <p className="text-sm text-gray-600 mb-1">Risk Category</p>
                   <div className="flex items-center space-x-3">
                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full ${
-                          latestQuestionnaire.risk_score < 40 ? 'bg-green-500' :
-                          latestQuestionnaire.risk_score < 70 ? 'bg-yellow-500' : 'bg-red-500'
+                          mlPrediction.risk_category === 'Low' ? 'bg-green-500' :
+                          mlPrediction.risk_category === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'
                         }`}
-                        style={{ width: `${latestQuestionnaire.risk_score}%` }}
+                        style={{ width: `${mlPrediction.risk_category === 'Low' ? 33 : mlPrediction.risk_category === 'Medium' ? 66 : 100}%` }}
                       />
                     </div>
                     <span className="text-lg font-bold text-gray-900">
-                      {latestQuestionnaire.risk_score}
+                      {mlPrediction.risk_category}
                     </span>
                   </div>
                 </div>
@@ -662,16 +687,23 @@ const DashboardHome: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Premium Estimate</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(latestQuestionnaire.premium_estimate || 0)}
+                    {formatCurrency(mlPrediction.monthly_premium_estimate || 0)}
                     <span className="text-sm text-gray-600">/month</span>
                   </p>
                 </div>
 
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Confidence</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {Math.round(mlPrediction.risk_confidence * 100)}%
+                  </p>
+                </div>
+
                 <Link
-                  to="/dashboard/assessments"
+                  to="/dashboard/ml-recommendations"
                   className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
                 >
-                  View Full Assessment
+                  View ML Recommendations
                 </Link>
               </div>
             </div>

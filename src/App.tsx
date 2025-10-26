@@ -28,6 +28,7 @@ import { useAuth } from './hooks/useAuth';
 import ClaimDetailsPage from './pages/dashboard/ClaimDetailsPage';
 import TerminologyGlossaryPage from './pages/dashboard/TerminologyGlossaryPage';
 import ProviderNetworkPage from './pages/dashboard/ProviderNetworkPage';
+import SettingsPage from './pages/dashboard/SettingsPage';
 import PolicyBrowsePage from './pages/PolicyBrowsePage';
 import PolicyDetailsPagePublic from './pages/PolicyDetailsPage';
 import QuickBuyPage from './pages/QuickBuyPage';
@@ -270,6 +271,7 @@ function App() {
             <Route path="claims" element={<ClaimsPage />} />
             <Route path="claims/:id" element={<ClaimDetailsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
             <Route path="help" element={<HelpCenterPage />} />
             <Route path="glossary" element={<TerminologyGlossaryPage />} />
             <Route path="providers" element={<ProviderNetworkPage />} />
