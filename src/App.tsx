@@ -14,6 +14,7 @@ import AssessmentsPage from './pages/dashboard/AssessmentsPage';
 import AssessmentDetailsPage from './pages/dashboard/AssessmentDetailsPage';
 import NewAssessmentPage from './pages/dashboard/NewAssessmentPage';
 import AIInsuranceRecommendationsPage from './pages/dashboard/AIInsuranceRecommendationsPage';
+import MLEnhancedRecommendationsPage from './pages/dashboard/MLEnhancedRecommendationsPage';
 import RiskDashboardPage from './pages/dashboard/RiskDashboardPage';
 import HealthTrackingPage from './pages/dashboard/HealthTrackingPage';
 import FinancialPlanningPage from './pages/dashboard/FinancialPlanningPage';
@@ -256,7 +257,8 @@ function App() {
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:id" element={<AssessmentDetailsPage />} />
             <Route path="assessment/new" element={<NewAssessmentPage />} />
-            <Route path="ai-recommendations" element={<AIInsuranceRecommendationsPage />} />
+            <Route path="ai-recommendations" element={<MLEnhancedRecommendationsPage />} />
+            <Route path="ai-recommendations-legacy" element={<AIInsuranceRecommendationsPage />} />
             <Route path="risk" element={<RiskDashboardPage />} />
             <Route path="health" element={<HealthTrackingPage />} />
             <Route path="financial" element={<FinancialPlanningPage />} />
