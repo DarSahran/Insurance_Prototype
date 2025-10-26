@@ -5,8 +5,9 @@ export interface PolicyRecommendation {
   policy_name: string;
   insurance_type: string;
   provider_name: string;
-  monthly_premium: number;
-  coverage_amount: number;
+  monthly_premium_base: number;
+  coverage_amount_min: number;
+  coverage_amount_max: number;
   key_features: string[];
   priority: 'high' | 'medium' | 'low';
   match_score: number;
@@ -55,114 +56,113 @@ export class PolicyRecommendationService {
     const userPolicies = await this.getUserPolicies(userId);
     const recommendations: PolicyRecommendation[] = [];
 
-    const { riskCategory, age, maritalStatus, hasChildren, annualIncome, occupation } = mlData;
+    const { riskCategory, age, maritalStatus, hasChildren } = mlData;
 
-    if (!userPolicies.hasHealthInsurance) {
-      const { data: healthPolicies } = await supabase
+    // Helper function to fetch policies with provider info
+    const fetchPolicies = async (policyType: string, limit: number = 1) => {
+      const { data } = await supabase
         .from('policy_catalog')
-        .select('*')
-        .eq('insurance_type', 'health')
+        .select(`
+          *,
+          provider:policy_providers!provider_id(provider_name)
+        `)
+        .eq('policy_type', policyType)
         .eq('is_active', true)
-        .order('monthly_premium', { ascending: true })
-        .limit(1);
+        .order('monthly_premium_base', { ascending: true })
+        .limit(limit);
+      return data || [];
+    };
 
-      if (healthPolicies && healthPolicies.length > 0) {
-        const policy = healthPolicies[0];
+    // Health Insurance - High Priority
+    if (!userPolicies.hasHealthInsurance) {
+      const policies = await fetchPolicies('health');
+      if (policies.length > 0) {
+        const policy = policies[0];
         recommendations.push({
           id: policy.id,
           policy_name: policy.policy_name,
           insurance_type: 'Health Insurance',
-          provider_name: policy.provider_name,
-          monthly_premium: policy.monthly_premium,
-          coverage_amount: policy.coverage_amount,
-          key_features: policy.key_features || ['Cashless hospitalization', 'Pre & post hospitalization', 'No claim bonus'],
+          provider_name: policy.provider?.provider_name || 'Insurance Provider',
+          monthly_premium_base: policy.monthly_premium_base,
+          coverage_amount_min: policy.coverage_amount_min,
+          coverage_amount_max: policy.coverage_amount_max,
+          key_features: Array.isArray(policy.key_features) ? policy.key_features : ['Cashless hospitalization', 'Pre & post hospitalization', 'No claim bonus'],
           priority: 'high',
           match_score: 95,
         });
       }
     }
 
+    // Life Insurance - High Priority (if married or has children)
     if (!userPolicies.hasLifeInsurance && (maritalStatus === 'Married' || hasChildren)) {
-      const { data: lifePolicies } = await supabase
-        .from('policy_catalog')
-        .select('*')
-        .eq('insurance_type', 'term_life')
-        .eq('is_active', true)
-        .order('monthly_premium', { ascending: true })
-        .limit(1);
-
-      if (lifePolicies && lifePolicies.length > 0) {
-        const policy = lifePolicies[0];
+      const policies = await fetchPolicies('term_life');
+      if (policies.length > 0) {
+        const policy = policies[0];
         recommendations.push({
           id: policy.id,
           policy_name: policy.policy_name,
           insurance_type: 'Term Life Insurance',
-          provider_name: policy.provider_name,
-          monthly_premium: policy.monthly_premium,
-          coverage_amount: policy.coverage_amount,
-          key_features: policy.key_features || ['Death benefit payout', 'Affordable premiums', 'Flexible term lengths (10-30 years)'],
+          provider_name: policy.provider?.provider_name || 'Insurance Provider',
+          monthly_premium_base: policy.monthly_premium_base,
+          coverage_amount_min: policy.coverage_amount_min,
+          coverage_amount_max: policy.coverage_amount_max,
+          key_features: Array.isArray(policy.key_features) ? policy.key_features : ['Death benefit payout', 'Affordable premiums', 'Flexible term lengths'],
           priority: 'high',
           match_score: 92,
         });
       }
     }
 
-    if (!userPolicies.hasCarInsurance) {
-      const { data: carPolicies } = await supabase
-        .from('policy_catalog')
-        .select('*')
-        .eq('insurance_type', 'car')
-        .eq('is_active', true)
-        .order('monthly_premium', { ascending: true })
-        .limit(1);
-
-      if (carPolicies && carPolicies.length > 0) {
-        const policy = carPolicies[0];
+    // Car Insurance - Medium Priority
+    if (!userPolicies.hasCarInsurance && recommendations.length < 3) {
+      const policies = await fetchPolicies('car');
+      if (policies.length > 0) {
+        const policy = policies[0];
         recommendations.push({
           id: policy.id,
           policy_name: policy.policy_name,
           insurance_type: 'Car Insurance',
-          provider_name: policy.provider_name,
-          monthly_premium: policy.monthly_premium,
-          coverage_amount: policy.coverage_amount,
-          key_features: policy.key_features || ['Third party liability', 'Own damage cover', 'No claim bonus'],
+          provider_name: policy.provider?.provider_name || 'Insurance Provider',
+          monthly_premium_base: policy.monthly_premium_base,
+          coverage_amount_min: policy.coverage_amount_min,
+          coverage_amount_max: policy.coverage_amount_max,
+          key_features: Array.isArray(policy.key_features) ? policy.key_features : ['Third party liability', 'Own damage cover', 'No claim bonus'],
           priority: 'medium',
           match_score: 85,
         });
       }
     }
 
-    if (!userPolicies.hasTwoWheelerInsurance) {
-      const { data: twoWheelerPolicies } = await supabase
-        .from('policy_catalog')
-        .select('*')
-        .eq('insurance_type', 'two_wheeler')
-        .eq('is_active', true)
-        .order('monthly_premium', { ascending: true })
-        .limit(1);
-
-      if (twoWheelerPolicies && twoWheelerPolicies.length > 0) {
-        const policy = twoWheelerPolicies[0];
+    // Two Wheeler Insurance - Medium Priority
+    if (!userPolicies.hasTwoWheelerInsurance && recommendations.length < 3) {
+      const policies = await fetchPolicies('two_wheeler');
+      if (policies.length > 0) {
+        const policy = policies[0];
         recommendations.push({
           id: policy.id,
           policy_name: policy.policy_name,
           insurance_type: 'Two Wheeler Insurance',
-          provider_name: policy.provider_name,
-          monthly_premium: policy.monthly_premium,
-          coverage_amount: policy.coverage_amount,
-          key_features: policy.key_features || ['Third party cover', 'Personal accident cover', 'Theft protection'],
+          provider_name: policy.provider?.provider_name || 'Insurance Provider',
+          monthly_premium_base: policy.monthly_premium_base,
+          coverage_amount_min: policy.coverage_amount_min,
+          coverage_amount_max: policy.coverage_amount_max,
+          key_features: Array.isArray(policy.key_features) ? policy.key_features : ['Third party cover', 'Personal accident cover', 'Theft protection'],
           priority: 'medium',
           match_score: 80,
         });
       }
     }
 
+    // Fill remaining slots with general recommendations
     if (recommendations.length < 3) {
       const { data: additionalPolicies } = await supabase
         .from('policy_catalog')
-        .select('*')
+        .select(`
+          *,
+          provider:policy_providers!provider_id(provider_name)
+        `)
         .eq('is_active', true)
-        .order('monthly_premium', { ascending: true })
+        .order('monthly_premium_base', { ascending: true })
         .limit(3 - recommendations.length);
 
       if (additionalPolicies) {
@@ -170,11 +170,12 @@ export class PolicyRecommendationService {
           recommendations.push({
             id: policy.id,
             policy_name: policy.policy_name,
-            insurance_type: this.formatInsuranceType(policy.insurance_type),
-            provider_name: policy.provider_name,
-            monthly_premium: policy.monthly_premium,
-            coverage_amount: policy.coverage_amount,
-            key_features: policy.key_features || ['Comprehensive coverage', 'Affordable premiums', 'Easy claims process'],
+            insurance_type: this.formatInsuranceType(policy.policy_type),
+            provider_name: policy.provider?.provider_name || 'Insurance Provider',
+            monthly_premium_base: policy.monthly_premium_base,
+            coverage_amount_min: policy.coverage_amount_min,
+            coverage_amount_max: policy.coverage_amount_max,
+            key_features: Array.isArray(policy.key_features) ? policy.key_features : ['Comprehensive coverage', 'Affordable premiums', 'Easy claims'],
             priority: 'low',
             match_score: 70,
           });

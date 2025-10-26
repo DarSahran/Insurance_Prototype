@@ -701,10 +701,13 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
                       <div className="text-sm text-gray-600 mb-2">{policy.provider_name}</div>
                       <div className="text-sm font-medium text-gray-700 mb-3">{policy.policy_name}</div>
                       <div className="text-3xl font-bold text-blue-600 mb-4">
-                        ₹{policy.monthly_premium}<span className="text-lg text-gray-500">/mo</span>
+                        ₹{policy.monthly_premium_base}<span className="text-lg text-gray-500">/mo</span>
                       </div>
                       <div className="text-sm text-gray-600 mb-4">
-                        Coverage: ₹{(policy.coverage_amount / 100000).toFixed(1)}L
+                        Coverage: ₹{(policy.coverage_amount_min / 100000).toFixed(1)}L
+                        {policy.coverage_amount_max && policy.coverage_amount_max !== policy.coverage_amount_min &&
+                          ` - ₹${(policy.coverage_amount_max / 100000).toFixed(1)}L`
+                        }
                       </div>
                       <div className="space-y-2 mb-4">
                         {policy.key_features.slice(0, 3).map((feature, i) => (
