@@ -38,7 +38,7 @@ const DashboardLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Home', href: '/dashboard', icon: Home },
-    { name: 'AI+Ml Recommendations', href: '/dashboard/ml-recommendations', icon: Sparkles },
+    { name: 'AI/Ml Recommendations', href: '/dashboard/ml-recommendations', icon: Sparkles },
     { name: 'Risk Monitoring', href: '/dashboard/risk', icon: TrendingUp },
     { name: 'Financial Planning', href: '/dashboard/financial', icon: DollarSign },
     { name: 'Family Management', href: '/dashboard/family', icon: Users },
