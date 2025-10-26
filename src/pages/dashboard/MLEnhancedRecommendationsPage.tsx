@@ -67,6 +67,7 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
       if (questionnaire.ml_risk_category !== null) {
         const mlParams = questionnaire.ml_parameters || {};
         const health = questionnaire.health || {};
+        const mlPredictions = questionnaire.ml_predictions || {};
 
         const heightCm = mlParams.height_cm || health.height_cm || 0;
         const weightKg = mlParams.weight_kg || health.weight_kg || 0;
@@ -96,13 +97,16 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
           hasHypertension,
           overallHealthRiskScore: healthRiskFactors
         };
-        const riskProbs = questionnaire.ml_risk_probabilities || { Low: 0.7, Medium: 0.25, High: 0.05 };
+
+        const riskCategory = mlPredictions.risk_category || questionnaire.ml_risk_category || 'Low';
+        const riskConfidence = mlPredictions.risk_confidence || 0.85;
+        const riskProbs = mlPredictions.risk_probabilities || { Low: 0.7, Medium: 0.25, High: 0.05 };
         const highestRiskProb = Math.max(riskProbs.Low || 0, riskProbs.Medium || 0, riskProbs.High || 0);
         const riskScoreFromProb = Math.round(highestRiskProb * 100);
 
         const demographics = questionnaire.demographics || {};
         const policies = await PolicyRecommendationService.getRecommendedPolicies(user.id, {
-          riskCategory: questionnaire.ml_risk_category,
+          riskCategory: riskCategory,
           age: mlParams.age || demographics.age || 30,
           maritalStatus: mlParams.marital_status || demographics.marital_status || 'Single',
           hasChildren: (mlParams.dependent_children_count || 0) > 0,
@@ -114,27 +118,27 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
 
         setAnalysis({
           mlPrediction: {
-            riskCategory: questionnaire.ml_risk_category,
+            riskCategory: riskCategory,
             riskScore: riskScoreFromProb,
-            riskConfidence: questionnaire.ml_risk_confidence || 0.85,
+            riskConfidence: riskConfidence,
             riskProbabilities: riskProbs,
-            customerLifetimeValue: questionnaire.ml_customer_lifetime_value || 0,
+            customerLifetimeValue: mlPredictions.customer_lifetime_value || 0,
             monthlyPremium: questionnaire.ml_monthly_premium || questionnaire.premium_estimate || 96,
             derivedFeatures,
           },
           geminiEnhancement: {
             eligiblePolicies: [],
             personalizedAdvice: '',
-            riskAssessment: { overall: questionnaire.ml_risk_category, factors: [], improvements: [] },
+            riskAssessment: { overall: riskCategory, factors: [], improvements: [] },
             premiumOptimization: { currentEstimate: 0, potentialSavings: 0, recommendations: [] },
           },
           combinedInsights: {
             finalRiskScore: riskScoreFromProb,
-            finalRiskLevel: questionnaire.ml_risk_category,
+            finalRiskLevel: riskCategory,
             finalPremiumEstimate: questionnaire.ml_monthly_premium || questionnaire.premium_estimate || 96,
-            confidenceScore: Math.round((questionnaire.ml_risk_confidence || 0.85) * 100),
+            confidenceScore: Math.round(riskConfidence * 100),
             modelAgreement: 94,
-            recommendation: `Excellent! Your ${questionnaire.ml_risk_category} risk profile qualifies you for preferred rates. ML analysis shows high confidence (${Math.round((questionnaire.ml_risk_confidence || 0.85) * 100)}%) in this assessment. Consider maximizing coverage while rates are favorable.`,
+            recommendation: `Excellent! Your ${riskCategory} risk profile qualifies you for preferred rates. ML analysis shows high confidence (${Math.round(riskConfidence * 100)}%) in this assessment. Consider maximizing coverage while rates are favorable.`,
           },
           dataCompleteness: {
             percentage: questionnaire.data_completion_percentage || 100,
