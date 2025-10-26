@@ -245,4 +245,158 @@ export class HuggingFaceMLService {
   }
 }
 
+// Wrapper function with comprehensive logging for ML Assessment
+export async function predictInsuranceML(data: Partial<MLModelRequest>): Promise<MLModelResponse> {
+  console.log('━'.repeat(80));
+  console.log('🤖 HUGGINGFACE ML API CALL INITIATED');
+  console.log('━'.repeat(80));
+  console.log('📍 Endpoint: darsahran/insurance-ml-api');
+  console.log('⏰ Timestamp:', new Date().toISOString());
+  console.log('━'.repeat(80));
+
+  // Log all 38 parameters
+  console.log('📊 INPUT PARAMETERS (38 Total):');
+  console.log('');
+  console.log('👤 Demographics (6):');
+  console.log('  - age:', data.age);
+  console.log('  - gender:', data.gender);
+  console.log('  - marital_status:', data.marital_status);
+  console.log('  - education_level:', data.education_level);
+  console.log('  - city:', data.city);
+  console.log('  - region_type:', data.region_type);
+  console.log('');
+
+  console.log('💰 Financial (5):');
+  console.log('  - annual_income_range:', data.annual_income_range);
+  console.log('  - has_debt:', data.has_debt);
+  console.log('  - is_sole_provider:', data.is_sole_provider);
+  console.log('  - has_savings:', data.has_savings);
+  console.log('  - investment_capacity:', data.investment_capacity);
+  console.log('');
+
+  console.log('📏 Physical (2):');
+  console.log('  - height_cm:', data.height_cm);
+  console.log('  - weight_kg:', data.weight_kg);
+  console.log('');
+
+  console.log('🩺 Health Vitals (4):');
+  console.log('  - blood_pressure_systolic:', data.blood_pressure_systolic);
+  console.log('  - blood_pressure_diastolic:', data.blood_pressure_diastolic);
+  console.log('  - resting_heart_rate:', data.resting_heart_rate);
+  console.log('  - blood_sugar_fasting:', data.blood_sugar_fasting);
+  console.log('');
+
+  console.log('🏥 Medical Conditions (5):');
+  console.log('  - condition_heart_disease:', data.condition_heart_disease);
+  console.log('  - condition_asthma:', data.condition_asthma);
+  console.log('  - condition_thyroid:', data.condition_thyroid);
+  console.log('  - condition_cancer_history:', data.condition_cancer_history);
+  console.log('  - condition_kidney_disease:', data.condition_kidney_disease);
+  console.log('');
+
+  console.log('🏃 Lifestyle (6):');
+  console.log('  - smoking_status:', data.smoking_status);
+  console.log('  - years_smoking:', data.years_smoking);
+  console.log('  - alcohol_consumption:', data.alcohol_consumption);
+  console.log('  - exercise_frequency_weekly:', data.exercise_frequency_weekly);
+  console.log('  - sleep_hours_avg:', data.sleep_hours_avg);
+  console.log('  - stress_level:', data.stress_level);
+  console.log('');
+
+  console.log('👨‍👩‍👧‍👦 Family & Work (3):');
+  console.log('  - dependent_children_count:', data.dependent_children_count);
+  console.log('  - dependent_parents_count:', data.dependent_parents_count);
+  console.log('  - occupation_type:', data.occupation_type);
+  console.log('');
+
+  console.log('🛡️ Insurance (5):');
+  console.log('  - insurance_type_requested:', data.insurance_type_requested);
+  console.log('  - coverage_amount_requested:', data.coverage_amount_requested);
+  console.log('  - policy_period_years:', data.policy_period_years);
+  console.log('  - monthly_premium_budget:', data.monthly_premium_budget);
+  console.log('  - has_existing_policies:', data.has_existing_policies);
+  console.log('');
+
+  console.log('📋 Assessment (2):');
+  console.log('  - num_assessments_started:', data.num_assessments_started);
+  console.log('  - num_assessments_completed:', data.num_assessments_completed);
+  console.log('━'.repeat(80));
+
+  // Validate request
+  console.log('🔍 Validating request...');
+  const validation = HuggingFaceMLService.validateRequest(data);
+  console.log('✅ Validation Result:');
+  console.log('  - Is Valid:', validation.isValid);
+  console.log('  - Completion:', validation.completionPercentage + '%');
+  if (validation.missingFields.length > 0) {
+    console.log('  - Missing Fields:', validation.missingFields);
+  }
+  if (validation.invalidFields.length > 0) {
+    console.log('  - Invalid Fields:', validation.invalidFields);
+  }
+  console.log('━'.repeat(80));
+
+  if (!validation.isValid) {
+    console.error('❌ VALIDATION FAILED');
+    console.error('Missing:', validation.missingFields.join(', '));
+    console.error('Invalid:', validation.invalidFields.map(f => f.field).join(', '));
+    console.log('━'.repeat(80));
+    throw new Error('Validation failed: ' + validation.missingFields.join(', '));
+  }
+
+  try {
+    console.log('📤 Sending request to HuggingFace API...');
+    const startTime = Date.now();
+
+    const result = await HuggingFaceMLService.predictInsuranceRisk(data);
+
+    const duration = Date.now() - startTime;
+    console.log('━'.repeat(80));
+    console.log('✅ HUGGINGFACE API RESPONSE RECEIVED');
+    console.log('⏱️  Response Time:', duration + 'ms');
+    console.log('━'.repeat(80));
+
+    console.log('📊 ML MODEL PREDICTIONS:');
+    console.log('');
+    console.log('🎯 Risk Assessment:');
+    console.log('  - Category:', result.risk_category);
+    console.log('  - Confidence:', (result.risk_confidence * 100).toFixed(2) + '%');
+    console.log('  - Probabilities:', JSON.stringify(result.risk_probabilities, null, 2));
+    console.log('');
+
+    console.log('💎 Customer Lifetime Value:');
+    console.log('  - CLV: ₹' + result.customer_lifetime_value.toLocaleString());
+    console.log('  - Est. Monthly Premium: ₹' + HuggingFaceMLService.calculateMonthlyPremiumFromCLV(result.customer_lifetime_value, data.policy_period_years || 20));
+    console.log('');
+
+    console.log('📈 Derived Features (Auto-calculated):');
+    console.log('  - BMI:', result.derived_features.bmi.toFixed(2));
+    console.log('  - BMI Category:', result.derived_features.bmi_category);
+    console.log('  - Has Diabetes:', result.derived_features.has_diabetes);
+    console.log('  - Has Hypertension:', result.derived_features.has_hypertension);
+    console.log('  - Health Risk Score:', (result.derived_features.overall_health_risk_score * 100).toFixed(2) + '%');
+    console.log('  - Financial Risk Score:', (result.derived_features.financial_risk_score * 100).toFixed(2) + '%');
+    console.log('  - Annual Income (Midpoint): ₹' + result.derived_features.annual_income_midpoint.toLocaleString());
+    console.log('');
+
+    console.log('━'.repeat(80));
+    console.log('🎉 ML PREDICTION COMPLETE!');
+    console.log('━'.repeat(80));
+
+    return result;
+  } catch (error: any) {
+    console.log('━'.repeat(80));
+    console.error('❌ HUGGINGFACE API ERROR:');
+    console.error('Error Type:', error.name);
+    console.error('Error Message:', error.message);
+    if (error.response) {
+      console.error('HTTP Status:', error.response.status);
+      console.error('Response Data:', error.response.data);
+    }
+    console.error('Full Error:', error);
+    console.log('━'.repeat(80));
+    throw error;
+  }
+}
+
 export default HuggingFaceMLService;

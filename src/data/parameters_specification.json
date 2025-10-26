@@ -1,0 +1,794 @@
+{
+  "insurance_ml_parameters": {
+    "title": "SmartCover Insurance ML - Complete Parameter Specification",
+    "version": "2.0.0",
+    "total_features": 80,
+    "user_inputs": 38,
+    "auto_calculated": 42,
+    "last_updated": "2025-10-26"
+  },
+  "core_parameters": {
+    "demographics": {
+      "count": 6,
+      "parameters": [
+        {
+          "name": "age",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 18,
+            "max": 70
+          },
+          "description": "Age in years",
+          "validation": "ge=18, le=70"
+        },
+        {
+          "name": "gender",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Male", "Female", "Other"]
+          },
+          "description": "Gender",
+          "validation": "regex=^(Male|Female|Other)$"
+        },
+        {
+          "name": "marital_status",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Single", "Married", "Divorced", "Widowed"]
+          },
+          "description": "Marital status",
+          "validation": "regex=^(Single|Married|Divorced|Widowed)$"
+        },
+        {
+          "name": "education_level",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["10th Pass", "12th Pass", "College Graduate and above"]
+          },
+          "description": "Education level",
+          "validation": "regex=^(10th Pass|12th Pass|College Graduate and above)$"
+        },
+        {
+          "name": "city",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Patna"]
+          },
+          "description": "City",
+          "validation": "regex=^(Mumbai|Delhi|Bangalore|Chennai|Kolkata|Hyderabad|Pune|Patna)$"
+        },
+        {
+          "name": "region_type",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Metro", "Tier-1", "Tier-2"]
+          },
+          "description": "Region type",
+          "validation": "regex=^(Metro|Tier-1|Tier-2)$"
+        }
+      ]
+    },
+    "financial": {
+      "count": 5,
+      "parameters": [
+        {
+          "name": "annual_income_range",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Below 5L", "5L-10L", "10L-25L"]
+          },
+          "description": "Income range",
+          "validation": "regex=^(Below 5L|5L-10L|10L-25L)$"
+        },
+        {
+          "name": "has_debt",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Has existing debt"
+        },
+        {
+          "name": "is_sole_provider",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Is sole income provider"
+        },
+        {
+          "name": "has_savings",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Has savings"
+        },
+        {
+          "name": "investment_capacity",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Low", "Medium", "_RARE_"]
+          },
+          "description": "Investment capacity",
+          "validation": "regex=^(Low|Medium|_RARE_)$"
+        }
+      ]
+    },
+    "physical": {
+      "count": 2,
+      "parameters": [
+        {
+          "name": "height_cm",
+          "type": "float",
+          "required": true,
+          "constraints": {
+            "min": 140,
+            "max": 220
+          },
+          "description": "Height in centimeters",
+          "validation": "ge=140, le=220"
+        },
+        {
+          "name": "weight_kg",
+          "type": "float",
+          "required": true,
+          "constraints": {
+            "min": 40,
+            "max": 150
+          },
+          "description": "Weight in kilograms",
+          "validation": "ge=40, le=150"
+        }
+      ]
+    },
+    "health_vitals": {
+      "count": 4,
+      "parameters": [
+        {
+          "name": "blood_pressure_systolic",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 80,
+            "max": 220
+          },
+          "description": "Systolic blood pressure",
+          "validation": "ge=80, le=220"
+        },
+        {
+          "name": "blood_pressure_diastolic",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 50,
+            "max": 130
+          },
+          "description": "Diastolic blood pressure",
+          "validation": "ge=50, le=130"
+        },
+        {
+          "name": "resting_heart_rate",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 40,
+            "max": 120
+          },
+          "description": "Resting heart rate",
+          "validation": "ge=40, le=120"
+        },
+        {
+          "name": "blood_sugar_fasting",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 60,
+            "max": 300
+          },
+          "description": "Fasting blood sugar level",
+          "validation": "ge=60, le=300"
+        }
+      ]
+    },
+    "medical_conditions": {
+      "count": 5,
+      "parameters": [
+        {
+          "name": "condition_heart_disease",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Has heart disease"
+        },
+        {
+          "name": "condition_asthma",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Has asthma"
+        },
+        {
+          "name": "condition_thyroid",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Has thyroid disorder"
+        },
+        {
+          "name": "condition_cancer_history",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Has cancer history"
+        },
+        {
+          "name": "condition_kidney_disease",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Has kidney disease"
+        }
+      ]
+    },
+    "lifestyle": {
+      "count": 6,
+      "parameters": [
+        {
+          "name": "smoking_status",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Never", "Former", "Current"]
+          },
+          "description": "Smoking status",
+          "validation": "regex=^(Never|Former|Current)$"
+        },
+        {
+          "name": "years_smoking",
+          "type": "int",
+          "required": false,
+          "default": 0,
+          "constraints": {
+            "min": 0,
+            "max": 50
+          },
+          "description": "Years of smoking",
+          "validation": "ge=0, le=50"
+        },
+        {
+          "name": "alcohol_consumption",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["None", "Occasionally", "Regularly", "Heavily"]
+          },
+          "description": "Alcohol consumption",
+          "validation": "regex=^(None|Occasionally|Regularly|Heavily)$"
+        },
+        {
+          "name": "exercise_frequency_weekly",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 0,
+            "max": 7
+          },
+          "description": "Exercise days per week",
+          "validation": "ge=0, le=7"
+        },
+        {
+          "name": "sleep_hours_avg",
+          "type": "float",
+          "required": true,
+          "constraints": {
+            "min": 3,
+            "max": 12
+          },
+          "description": "Average sleep hours",
+          "validation": "ge=3, le=12"
+        },
+        {
+          "name": "stress_level",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 1,
+            "max": 10
+          },
+          "description": "Stress level (1-10)",
+          "validation": "ge=1, le=10"
+        }
+      ]
+    },
+    "family_work": {
+      "count": 3,
+      "parameters": [
+        {
+          "name": "dependent_children_count",
+          "type": "int",
+          "required": false,
+          "default": 0,
+          "constraints": {
+            "min": 0,
+            "max": 5
+          },
+          "description": "Number of dependent children",
+          "validation": "ge=0, le=5"
+        },
+        {
+          "name": "dependent_parents_count",
+          "type": "int",
+          "required": false,
+          "default": 0,
+          "constraints": {
+            "min": 0,
+            "max": 4
+          },
+          "description": "Number of dependent parents",
+          "validation": "ge=0, le=4"
+        },
+        {
+          "name": "occupation_type",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["Housewife", "Professional", "Retired", "Salaried", "Self Employed"]
+          },
+          "description": "Occupation type",
+          "validation": "regex=^(Housewife|Professional|Retired|Salaried|Self Employed)$"
+        }
+      ]
+    },
+    "insurance": {
+      "count": 5,
+      "parameters": [
+        {
+          "name": "insurance_type_requested",
+          "type": "str",
+          "required": true,
+          "constraints": {
+            "allowed_values": ["car", "family_health", "health", "investment", "retirement", "term-life", "two-wheeler"]
+          },
+          "description": "Insurance type",
+          "validation": "regex=^(car|family_health|health|investment|retirement|term-life|two-wheeler)$"
+        },
+        {
+          "name": "coverage_amount_requested",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 100000,
+            "max": 10000000
+          },
+          "description": "Coverage amount in rupees",
+          "validation": "ge=100000, le=10000000"
+        },
+        {
+          "name": "policy_period_years",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 1,
+            "max": 30
+          },
+          "description": "Policy period in years",
+          "validation": "ge=1, le=30"
+        },
+        {
+          "name": "monthly_premium_budget",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min": 500,
+            "max": 50000
+          },
+          "description": "Monthly premium budget",
+          "validation": "ge=500, le=50000"
+        },
+        {
+          "name": "has_existing_policies",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Has existing insurance policies"
+        }
+      ]
+    },
+    "assessment": {
+      "count": 2,
+      "parameters": [
+        {
+          "name": "num_assessments_started",
+          "type": "int",
+          "required": false,
+          "default": 1,
+          "constraints": {
+            "min": 1,
+            "max": 20
+          },
+          "description": "Number of assessments started",
+          "validation": "ge=1, le=20"
+        },
+        {
+          "name": "num_assessments_completed",
+          "type": "int",
+          "required": false,
+          "default": 1,
+          "constraints": {
+            "min": 0,
+            "max": 20
+          },
+          "description": "Number of assessments completed",
+          "validation": "ge=0, le=20"
+        }
+      ]
+    }
+  },
+  "derived_features": {
+    "count": 42,
+    "categories": {
+      "demographic_derived": {
+        "features": [
+          {
+            "name": "age_group",
+            "type": "str",
+            "calculation": "if age <= 25: '18-25' elif age <= 35: '26-35' elif age <= 45: '36-45' elif age <= 55: '46-55' elif age <= 65: '56-65' else: '65+'",
+            "source_params": ["age"],
+            "description": "Age categorized into groups"
+          },
+          {
+            "name": "education_score",
+            "type": "int",
+            "calculation": "{'10th Pass': 1, '12th Pass': 2, 'College Graduate and above': 4}[education_level]",
+            "source_params": ["education_level"],
+            "description": "Numerical education score"
+          }
+        ]
+      },
+      "financial_derived": {
+        "features": [
+          {
+            "name": "annual_income_midpoint",
+            "type": "int",
+            "calculation": "{'Below 5L': 350000, '5L-10L': 750000, '10L-25L': 1750000}[annual_income_range]",
+            "source_params": ["annual_income_range"],
+            "description": "Midpoint estimate of income range"
+          },
+          {
+            "name": "monthly_income_estimate",
+            "type": "int",
+            "calculation": "annual_income_midpoint // 12",
+            "source_params": ["annual_income_midpoint"],
+            "description": "Monthly income estimate"
+          },
+          {
+            "name": "debt_to_income_ratio",
+            "type": "float",
+            "calculation": "0.4 if has_debt else 0.1",
+            "source_params": ["has_debt"],
+            "description": "Estimated debt to income ratio"
+          },
+          {
+            "name": "financial_risk_score",
+            "type": "float",
+            "calculation": "min(1.0, sum([has_debt * 0.3, (not has_savings) * 0.2, is_sole_provider * 0.2, (investment_capacity == 'Low') * 0.3]))",
+            "source_params": ["has_debt", "has_savings", "is_sole_provider", "investment_capacity"],
+            "description": "Composite financial risk score (0-1)"
+          }
+        ]
+      },
+      "physical_health_derived": {
+        "features": [
+          {
+            "name": "bmi",
+            "type": "float",
+            "calculation": "weight_kg / ((height_cm / 100) ** 2)",
+            "source_params": ["weight_kg", "height_cm"],
+            "description": "Body Mass Index"
+          },
+          {
+            "name": "bmi_category",
+            "type": "str",
+            "calculation": "if bmi < 25: 'Normal' elif bmi < 30: 'Overweight' else: 'Obese'",
+            "source_params": ["bmi"],
+            "description": "BMI category classification"
+          },
+          {
+            "name": "has_hypertension",
+            "type": "bool",
+            "calculation": "blood_pressure_systolic >= 140 or blood_pressure_diastolic >= 90",
+            "source_params": ["blood_pressure_systolic", "blood_pressure_diastolic"],
+            "description": "Hypertension detection based on BP"
+          },
+          {
+            "name": "has_diabetes",
+            "type": "bool",
+            "calculation": "blood_sugar_fasting >= 126",
+            "source_params": ["blood_sugar_fasting"],
+            "description": "Diabetes detection based on fasting glucose"
+          }
+        ]
+      },
+      "medical_conditions_derived": {
+        "features": [
+          {
+            "name": "has_pre_existing_conditions",
+            "type": "bool",
+            "calculation": "chronic_condition_count > 0",
+            "source_params": ["chronic_condition_count"],
+            "description": "Has any pre-existing medical conditions"
+          },
+          {
+            "name": "num_medical_conditions",
+            "type": "int",
+            "calculation": "sum([has_diabetes, has_hypertension, condition_heart_disease, condition_asthma, condition_thyroid, condition_cancer_history, condition_kidney_disease])",
+            "source_params": ["has_diabetes", "has_hypertension", "condition_heart_disease", "condition_asthma", "condition_thyroid", "condition_cancer_history", "condition_kidney_disease"],
+            "description": "Total count of medical conditions"
+          },
+          {
+            "name": "chronic_condition_count",
+            "type": "int",
+            "calculation": "sum([has_diabetes, has_hypertension, condition_heart_disease, condition_asthma, condition_thyroid, condition_cancer_history, condition_kidney_disease])",
+            "source_params": ["has_diabetes", "has_hypertension", "condition_heart_disease", "condition_asthma", "condition_thyroid", "condition_cancer_history", "condition_kidney_disease"],
+            "description": "Count of chronic conditions"
+          },
+          {
+            "name": "condition_diabetes",
+            "type": "bool",
+            "calculation": "has_diabetes",
+            "source_params": ["has_diabetes"],
+            "description": "Diabetes condition flag"
+          },
+          {
+            "name": "condition_hypertension",
+            "type": "bool",
+            "calculation": "has_hypertension",
+            "source_params": ["has_hypertension"],
+            "description": "Hypertension condition flag"
+          }
+        ]
+      },
+      "lifestyle_derived": {
+        "features": [
+          {
+            "name": "tobacco_use",
+            "type": "bool",
+            "calculation": "smoking_status in ['Former', 'Current']",
+            "source_params": ["smoking_status"],
+            "description": "Any tobacco use (former or current)"
+          },
+          {
+            "name": "alcohol_risk_score",
+            "type": "float",
+            "calculation": "{'None': 0, 'Occasionally': 0.2, 'Regularly': 0.5, 'Heavily': 0.8}[alcohol_consumption]",
+            "source_params": ["alcohol_consumption"],
+            "description": "Alcohol consumption risk score"
+          },
+          {
+            "name": "exercise_score",
+            "type": "float",
+            "calculation": "exercise_frequency_weekly / 7",
+            "source_params": ["exercise_frequency_weekly"],
+            "description": "Exercise score (0-1)"
+          },
+          {
+            "name": "is_physically_active",
+            "type": "bool",
+            "calculation": "exercise_frequency_weekly >= 3",
+            "source_params": ["exercise_frequency_weekly"],
+            "description": "Physically active flag (3+ days/week)"
+          },
+          {
+            "name": "sleep_quality_score",
+            "type": "float",
+            "calculation": "max(0.3, min(1.0, (sleep_hours_avg - 4) / 8))",
+            "source_params": ["sleep_hours_avg"],
+            "description": "Sleep quality score (0.3-1.0)"
+          },
+          {
+            "name": "has_high_stress",
+            "type": "bool",
+            "calculation": "stress_level >= 7",
+            "source_params": ["stress_level"],
+            "description": "High stress level flag"
+          },
+          {
+            "name": "diet_quality_score",
+            "type": "float",
+            "calculation": "0.6",
+            "source_params": [],
+            "description": "Default diet quality score"
+          },
+          {
+            "name": "eats_fruits_vegetables_daily",
+            "type": "bool",
+            "calculation": "True",
+            "source_params": [],
+            "description": "Default healthy eating assumption"
+          }
+        ]
+      },
+      "family_work_derived": {
+        "features": [
+          {
+            "name": "has_dependents",
+            "type": "bool",
+            "calculation": "num_dependents > 0",
+            "source_params": ["num_dependents"],
+            "description": "Has any dependents"
+          },
+          {
+            "name": "num_dependents",
+            "type": "int",
+            "calculation": "dependent_children_count + dependent_parents_count",
+            "source_params": ["dependent_children_count", "dependent_parents_count"],
+            "description": "Total number of dependents"
+          },
+          {
+            "name": "occupation_risk_score",
+            "type": "float",
+            "calculation": "{'Professional': 0.2, 'Salaried': 0.3, 'Self Employed': 0.5, 'Housewife': 0.2, 'Retired': 0.4}.get(occupation_type, 0.3)",
+            "source_params": ["occupation_type"],
+            "description": "Occupation-based risk score"
+          }
+        ]
+      },
+      "insurance_derived": {
+        "features": [
+          {
+            "name": "coverage_amount_category",
+            "type": "str",
+            "calculation": "if coverage_amount_requested < 500000: 'Basic (<5L)' elif coverage_amount_requested < 1500000: 'Standard (5-15L)' elif coverage_amount_requested < 5000000: 'Premium (15-50L)' else: 'High (50L+)'",
+            "source_params": ["coverage_amount_requested"],
+            "description": "Coverage amount category"
+          },
+          {
+            "name": "prefers_longer_term",
+            "type": "bool",
+            "calculation": "policy_period_years >= 3",
+            "source_params": ["policy_period_years"],
+            "description": "Prefers longer policy terms"
+          },
+          {
+            "name": "num_existing_policies",
+            "type": "int",
+            "calculation": "1 if has_existing_policies else 0",
+            "source_params": ["has_existing_policies"],
+            "description": "Number of existing policies"
+          }
+        ]
+      },
+      "assessment_derived": {
+        "features": [
+          {
+            "name": "assessment_completion_rate",
+            "type": "float",
+            "calculation": "num_assessments_completed / max(num_assessments_started, 1)",
+            "source_params": ["num_assessments_completed", "num_assessments_started"],
+            "description": "Assessment completion rate"
+          },
+          {
+            "name": "time_to_complete_assessment_minutes",
+            "type": "float",
+            "calculation": "20.0 + (num_assessments_completed * 5)",
+            "source_params": ["num_assessments_completed"],
+            "description": "Estimated time to complete assessment"
+          },
+          {
+            "name": "assessment_completion_ratio",
+            "type": "float",
+            "calculation": "assessment_completion_rate",
+            "source_params": ["assessment_completion_rate"],
+            "description": "Assessment completion ratio (alias)"
+          }
+        ]
+      },
+      "risk_scores": {
+        "features": [
+          {
+            "name": "overall_health_risk_score",
+            "type": "float",
+            "calculation": "min(1.0, sum([has_diabetes * 0.3, has_hypertension * 0.2, tobacco_use * 0.25, (alcohol_risk_score > 0.5) * 0.15, (bmi > 30) * 0.1]))",
+            "source_params": ["has_diabetes", "has_hypertension", "tobacco_use", "alcohol_risk_score", "bmi"],
+            "description": "Composite health risk score (0-1)"
+          },
+          {
+            "name": "mortality_risk_score",
+            "type": "float",
+            "calculation": "min(1.0, overall_health_risk_score * 0.8 + (age / 70) * 0.2)",
+            "source_params": ["overall_health_risk_score", "age"],
+            "description": "Mortality risk score (0-1)"
+          }
+        ]
+      },
+      "clv_engineered_features": {
+        "features": [
+          {
+            "name": "age_income_interaction",
+            "type": "float",
+            "calculation": "age * (annual_income_midpoint / 1000000)",
+            "source_params": ["age", "annual_income_midpoint"],
+            "description": "Age-income interaction term"
+          },
+          {
+            "name": "risk_income_interaction",
+            "type": "float",
+            "calculation": "overall_health_risk_score * (annual_income_midpoint / 1000000)",
+            "source_params": ["overall_health_risk_score", "annual_income_midpoint"],
+            "description": "Risk-income interaction term"
+          },
+          {
+            "name": "bmi_age_interaction",
+            "type": "float",
+            "calculation": "bmi * age",
+            "source_params": ["bmi", "age"],
+            "description": "BMI-age interaction term"
+          },
+          {
+            "name": "age_squared",
+            "type": "int",
+            "calculation": "age ** 2",
+            "source_params": ["age"],
+            "description": "Age squared for non-linear effects"
+          },
+          {
+            "name": "income_squared",
+            "type": "float",
+            "calculation": "(annual_income_midpoint / 1000000) ** 2",
+            "source_params": ["annual_income_midpoint"],
+            "description": "Income squared for non-linear effects"
+          },
+          {
+            "name": "dependent_ratio",
+            "type": "float",
+            "calculation": "num_dependents / max(age / 10, 1)",
+            "source_params": ["num_dependents", "age"],
+            "description": "Dependent ratio adjusted for age"
+          },
+          {
+            "name": "high_income",
+            "type": "bool",
+            "calculation": "annual_income_midpoint > 1000000",
+            "source_params": ["annual_income_midpoint"],
+            "description": "High income flag (>10L)"
+          },
+          {
+            "name": "high_risk",
+            "type": "bool",
+            "calculation": "overall_health_risk_score > 0.7",
+            "source_params": ["overall_health_risk_score"],
+            "description": "High risk flag"
+          }
+        ]
+      }
+    }
+  },
+  "api_usage": {
+    "gradio_client_examples": [
+      {
+        "name": "demo_call",
+        "description": "Simple demo call with no parameters",
+        "code": "from gradio_client import Client\n\nclient = Client(\"darsahran/insurance-ml-api\")\nresult = client.predict(\n    api_name=\"/demo_prediction\"\n)\nprint(result)"
+      },
+      {
+        "name": "full_prediction",
+        "description": "Complete prediction with all 38 parameters",
+        "code": "from gradio_client import Client\n\nclient = Client(\"darsahran/insurance-ml-api\")\nresult = client.predict(\n    age=35,\n    gender=\"Male\",\n    marital_status=\"Married\",\n    education_level=\"College Graduate and above\",\n    city=\"Mumbai\",\n    region_type=\"Metro\",\n    annual_income_range=\"5L-10L\",\n    has_debt=False,\n    is_sole_provider=False,\n    has_savings=True,\n    investment_capacity=\"Medium\",\n    height_cm=170,\n    weight_kg=70,\n    blood_pressure_systolic=120,\n    blood_pressure_diastolic=80,\n    resting_heart_rate=72,\n    blood_sugar_fasting=95,\n    condition_heart_disease=False,\n    condition_asthma=False,\n    condition_thyroid=False,\n    condition_cancer_history=False,\n    condition_kidney_disease=False,\n    smoking_status=\"Never\",\n    years_smoking=0,\n    alcohol_consumption=\"Occasionally\",\n    exercise_frequency_weekly=3,\n    sleep_hours_avg=7.2,\n    stress_level=5,\n    dependent_children_count=1,\n    dependent_parents_count=0,\n    occupation_type=\"Salaried\",\n    insurance_type_requested=\"term-life\",\n    coverage_amount_requested=1000000,\n    policy_period_years=10,\n    monthly_premium_budget=5000,\n    has_existing_policies=False,\n    num_assessments_started=3,\n    num_assessments_completed=2,\n    api_name=\"/predict_insurance_optimized\"\n)\nprint(result)"
+      }
+    ]
+  },
+  "validation_summary": {
+    "total_parameters": 38,
+    "required_parameters": 28,
+    "optional_with_defaults": 10,
+    "derived_features_generated": 42,
+    "total_model_features": 80,
+    "optimization_achievement": "53% parameter reduction while maintaining 94.2% model accuracy"
+  }
+}

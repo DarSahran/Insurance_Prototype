@@ -249,7 +249,7 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
 
               <div className="text-center mb-6 md:mb-8 px-2">
                 <button
-                  onClick={() => navigate('/dashboard/assessment/new')}
+                  onClick={() => navigate('/dashboard/assessment/ml')}
                   className="group relative inline-flex items-center justify-center space-x-2 md:space-x-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white px-6 md:px-10 lg:px-12 py-4 md:py-5 rounded-xl md:rounded-2xl text-base md:text-lg font-bold hover:shadow-2xl transition-all transform hover:scale-105 hover:-translate-y-1 w-full md:w-auto max-w-md mx-auto"
                 >
                   <Zap className="w-5 h-5 md:w-6 md:h-6 group-hover:animate-bounce flex-shrink-0" />
@@ -314,7 +314,7 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
               <h3 className="text-lg font-semibold text-red-900 mb-2">Unable to Load Recommendations</h3>
               <p className="text-red-700 mb-4">{error}</p>
               <button
-                onClick={() => navigate('/dashboard/assessment/new')}
+                onClick={() => navigate('/dashboard/assessment/ml')}
                 className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
               >
                 Complete Assessment
