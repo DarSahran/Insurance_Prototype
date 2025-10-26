@@ -159,8 +159,6 @@ const SettingsPage: React.FC = () => {
     { id: 'subscription', name: 'Subscription', icon: Crown },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'privacy', name: 'Privacy & Security', icon: Shield },
-    { id: 'payments', name: 'Payment Methods', icon: CreditCard },
-    { id: 'preferences', name: 'Preferences', icon: Settings },
     { id: 'data', name: 'Data & Storage', icon: Database }
   ];
 

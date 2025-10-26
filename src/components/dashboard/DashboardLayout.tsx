@@ -178,18 +178,34 @@ const DashboardLayout: React.FC = () => {
                     </div>
                     <Link
                       to="/dashboard/profile"
-                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
+                        location.pathname === '/dashboard/profile'
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                       onClick={() => setProfileDropdownOpen(false)}
                     >
-                      <User className="w-4 h-4 mr-3 text-gray-400" />
+                      <User className={`w-4 h-4 mr-3 ${
+                        location.pathname === '/dashboard/profile'
+                          ? 'text-blue-600'
+                          : 'text-gray-400'
+                      }`} />
                       Your Profile
                     </Link>
                     <Link
                       to="/dashboard/settings"
-                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
+                        location.pathname === '/dashboard/settings'
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                       onClick={() => setProfileDropdownOpen(false)}
                     >
-                      <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                      <Settings className={`w-4 h-4 mr-3 ${
+                        location.pathname === '/dashboard/settings'
+                          ? 'text-blue-600'
+                          : 'text-gray-400'
+                      }`} />
                       Settings
                     </Link>
                     <hr className="my-1 border-gray-100" />
