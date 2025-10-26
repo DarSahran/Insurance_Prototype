@@ -312,7 +312,7 @@ const DashboardHome: React.FC = () => {
               </p>
               <div className="flex items-center justify-center space-x-4">
                 <Link
-                  to="/policy-browse"
+                  to="/browse-policies"
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
                 >
                   <Shield className="w-5 h-5" />
