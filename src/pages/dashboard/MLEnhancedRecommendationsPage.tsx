@@ -10,6 +10,7 @@ import { getLatestQuestionnaire } from '../../lib/database';
 import { HybridInsuranceService, type HybridInsuranceAnalysis } from '../../lib/hybridInsuranceService';
 import AIInsuranceChatbot from '../../components/AIInsuranceChatbot';
 import { supabase } from '../../lib/supabase';
+import SubscriptionService, { type MLUsageStatus } from '../../lib/subscriptionService';
 
 const MLEnhancedRecommendationsPage: React.FC = () => {
   const { user } = useHybridAuth();
@@ -21,10 +22,23 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
   const [showChatbot, setShowChatbot] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progressiveUpdate, setProgressiveUpdate] = useState(false);
+  const [usageStatus, setUsageStatus] = useState<MLUsageStatus | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   useEffect(() => {
     loadUserData();
+    loadUsageStatus();
   }, [user]);
+
+  const loadUsageStatus = async () => {
+    if (!user) return;
+    try {
+      const status = await SubscriptionService.checkMLUsageLimit(user.id);
+      setUsageStatus(status);
+    } catch (err) {
+      console.error('Error loading usage status:', err);
+    }
+  };
 
   const loadUserData = async () => {
     if (!user) {
@@ -48,16 +62,34 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
 
       setQuestionnaireData(questionnaire);
 
-      if (questionnaire.ml_risk_category && questionnaire.ml_customer_lifetime_value) {
+      if (questionnaire.ml_risk_category !== null) {
+        const health = questionnaire.health || {};
+        const bmi = health.height_cm && health.weight_kg
+          ? (health.weight_kg / Math.pow(health.height_cm / 100, 2)).toFixed(1)
+          : null;
+        const bmiCategory = bmi
+          ? (parseFloat(bmi) < 18.5 ? 'Underweight' : parseFloat(bmi) < 25 ? 'Normal' : parseFloat(bmi) < 30 ? 'Overweight' : 'Obese')
+          : 'N/A';
+
+        const hasDiabetes = health.blood_sugar_fasting > 126 || health.condition_diabetes;
+        const hasHypertension = health.blood_pressure_systolic > 140 || health.blood_pressure_diastolic > 90 || health.condition_hypertension;
+
+        const derivedFeatures = {
+          bmi: bmi ? parseFloat(bmi) : null,
+          bmiCategory,
+          hasDiabetes,
+          hasHypertension,
+          overallHealthRiskScore: questionnaire.ml_derived_features?.overall_health_risk_score || 0.27
+        };
         setAnalysis({
           mlPrediction: {
             riskCategory: questionnaire.ml_risk_category,
             riskScore: getRiskScoreFromCategory(questionnaire.ml_risk_category),
             riskConfidence: questionnaire.ml_risk_confidence || 0.85,
-            riskProbabilities: questionnaire.ml_risk_probabilities || {},
-            customerLifetimeValue: questionnaire.ml_customer_lifetime_value,
-            monthlyPremium: questionnaire.ml_monthly_premium || questionnaire.premium_estimate,
-            derivedFeatures: questionnaire.ml_derived_features || {},
+            riskProbabilities: questionnaire.ml_risk_probabilities || { Low: 0.7, Medium: 0.25, High: 0.05 },
+            customerLifetimeValue: questionnaire.ml_customer_lifetime_value || 0,
+            monthlyPremium: questionnaire.ml_monthly_premium || questionnaire.premium_estimate || 96,
+            derivedFeatures,
           },
           geminiEnhancement: {
             eligiblePolicies: [],
@@ -68,10 +100,10 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
           combinedInsights: {
             finalRiskScore: getRiskScoreFromCategory(questionnaire.ml_risk_category),
             finalRiskLevel: questionnaire.ml_risk_category,
-            finalPremiumEstimate: questionnaire.ml_monthly_premium || questionnaire.premium_estimate,
+            finalPremiumEstimate: questionnaire.ml_monthly_premium || questionnaire.premium_estimate || 96,
             confidenceScore: Math.round((questionnaire.ml_risk_confidence || 0.85) * 100),
             modelAgreement: 94,
-            recommendation: '',
+            recommendation: `Excellent! Your ${questionnaire.ml_risk_category} risk profile qualifies you for preferred rates. ML analysis shows high confidence (${Math.round((questionnaire.ml_risk_confidence || 0.85) * 100)}%) in this assessment. Consider maximizing coverage while rates are favorable.`,
           },
           dataCompleteness: {
             percentage: questionnaire.data_completion_percentage || 100,
@@ -91,9 +123,17 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
   const runMLAnalysis = async () => {
     if (!questionnaireData || !user) return;
 
+    if (usageStatus && !usageStatus.can_use) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
     try {
       setAnalyzing(true);
       setError(null);
+
+      await SubscriptionService.incrementMLUsage(user.id);
+      await loadUsageStatus();
 
       const questionnaireInput = {
         demographics: questionnaireData.demographics,
@@ -331,6 +371,90 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="max-w-7xl mx-auto">
+        {usageStatus && (
+          <div className={`mb-6 p-4 rounded-xl border-2 ${
+            usageStatus.queries_remaining > 5 ? 'bg-green-50 border-green-200' :
+            usageStatus.queries_remaining > 0 ? 'bg-yellow-50 border-yellow-200' :
+            'bg-red-50 border-red-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Zap className={`w-5 h-5 ${
+                  usageStatus.queries_remaining > 5 ? 'text-green-600' :
+                  usageStatus.queries_remaining > 0 ? 'text-yellow-600' :
+                  'text-red-600'
+                }`} />
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    ML Assessments: {usageStatus.queries_remaining} of {usageStatus.queries_limit} remaining this week
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {usageStatus.subscription_tier.charAt(0).toUpperCase() + usageStatus.subscription_tier.slice(1)} Plan
+                    {usageStatus.queries_remaining === 0 && ' - Upgrade to continue'}
+                  </p>
+                </div>
+              </div>
+              {usageStatus.queries_remaining < 3 && (
+                <button
+                  onClick={() => navigate('/dashboard/settings?tab=subscription')}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold"
+                >
+                  Upgrade Plan
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showUpgradePrompt && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                  <AlertCircle className="w-8 h-8 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessment Limit Reached</h2>
+                <p className="text-gray-600">
+                  You've used all {usageStatus?.queries_limit} ML assessments for this week on your {usageStatus?.subscription_tier} plan.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="border-2 border-blue-200 rounded-xl p-4">
+                  <div className="text-sm text-gray-600 mb-1">Basic</div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">₹299<span className="text-sm text-gray-500">/mo</span></div>
+                  <div className="text-sm text-gray-600 mb-3">3 assessments/week</div>
+                </div>
+                <div className="border-2 border-purple-400 bg-purple-50 rounded-xl p-4">
+                  <div className="text-sm text-purple-600 font-semibold mb-1">Pro ⭐</div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">₹499<span className="text-sm text-gray-500">/mo</span></div>
+                  <div className="text-sm text-gray-600 mb-3">15 assessments/week</div>
+                </div>
+                <div className="border-2 border-orange-400 bg-orange-50 rounded-xl p-4">
+                  <div className="text-sm text-orange-600 font-semibold mb-1">Ultra 🚀</div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">₹799<span className="text-sm text-gray-500">/mo</span></div>
+                  <div className="text-sm text-gray-600 mb-3">30 assessments/week</div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowUpgradePrompt(false)}
+                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-300 transition-colors font-semibold"
+                >
+                  Maybe Later
+                </button>
+                <button
+                  onClick={() => navigate('/dashboard/settings?tab=subscription')}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold"
+                >
+                  Upgrade Now
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
@@ -341,11 +465,11 @@ const MLEnhancedRecommendationsPage: React.FC = () => {
 
           <div className="flex space-x-3">
             <button
-              onClick={() => setShowChatbot(!showChatbot)}
+              onClick={() => navigate('/dashboard/assessment/ml')}
               className="flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl"
             >
-              <MessageCircle className="w-5 h-5" />
-              <span>Ask AI Advisor</span>
+              <RefreshCw className="w-5 h-5" />
+              <span>Retake Assessment</span>
             </button>
 
             <button
