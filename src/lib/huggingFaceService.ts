@@ -1,7 +1,10 @@
 import axios from 'axios';
+import { supabase } from './supabase';
 
 const HF_API_URL = import.meta.env.VITE_HF_API_URL || 'https://huggingface.co/spaces/darsahran/insurance-ml-api';
 const HF_API_KEY = import.meta.env.VITE_HF_API_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 interface MLModelRequest {
   age: number;
@@ -107,24 +110,38 @@ export class HuggingFaceMLService {
     retryCount = 0
   ): Promise<MLModelResponse> {
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+      // Use Supabase Edge Function to bypass CORS
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
 
-      if (HF_API_KEY) {
-        headers['Authorization'] = `Bearer ${HF_API_KEY}`;
+      if (!token) {
+        throw new Error('User not authenticated');
       }
 
-      const response = await axios.post<MLModelResponse>(
-        `${HF_API_URL}/api/predict`,
-        request,
-        {
-          headers,
-          timeout: this.REQUEST_TIMEOUT,
-        }
-      );
+      const edgeFunctionUrl = `${SUPABASE_URL}/functions/v1/ml-prediction`;
 
-      return response.data;
+      console.log('📡 Calling Supabase Edge Function:', edgeFunctionUrl);
+
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': SUPABASE_ANON_KEY || '',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Edge Function Error:', response.status, errorText);
+        throw new Error(`Edge Function error: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Edge Function Response:', result);
+
+      return result;
     } catch (error) {
       if (retryCount < this.MAX_RETRIES) {
         console.log(`Retrying request (attempt ${retryCount + 1}/${this.MAX_RETRIES})`);
@@ -369,15 +386,18 @@ export async function predictInsuranceML(data: Partial<MLModelRequest>): Promise
     console.log('  - Est. Monthly Premium: ₹' + HuggingFaceMLService.calculateMonthlyPremiumFromCLV(result.customer_lifetime_value, data.policy_period_years || 20));
     console.log('');
 
-    console.log('📈 Derived Features (Auto-calculated):');
-    console.log('  - BMI:', result.derived_features.bmi.toFixed(2));
-    console.log('  - BMI Category:', result.derived_features.bmi_category);
-    console.log('  - Has Diabetes:', result.derived_features.has_diabetes);
-    console.log('  - Has Hypertension:', result.derived_features.has_hypertension);
-    console.log('  - Health Risk Score:', (result.derived_features.overall_health_risk_score * 100).toFixed(2) + '%');
-    console.log('  - Financial Risk Score:', (result.derived_features.financial_risk_score * 100).toFixed(2) + '%');
-    console.log('  - Annual Income (Midpoint): ₹' + result.derived_features.annual_income_midpoint.toLocaleString());
-    console.log('');
+    // Only log derived features if they exist
+    if (result.derived_features) {
+      console.log('📈 Derived Features (Auto-calculated):');
+      console.log('  - BMI:', result.derived_features.bmi?.toFixed(2));
+      console.log('  - BMI Category:', result.derived_features.bmi_category);
+      console.log('  - Has Diabetes:', result.derived_features.has_diabetes);
+      console.log('  - Has Hypertension:', result.derived_features.has_hypertension);
+      console.log('  - Health Risk Score:', (result.derived_features.overall_health_risk_score * 100).toFixed(2) + '%');
+      console.log('  - Financial Risk Score:', (result.derived_features.financial_risk_score * 100).toFixed(2) + '%');
+      console.log('  - Annual Income (Midpoint): ₹' + result.derived_features.annual_income_midpoint?.toLocaleString());
+      console.log('');
+    }
 
     console.log('━'.repeat(80));
     console.log('🎉 ML PREDICTION COMPLETE!');

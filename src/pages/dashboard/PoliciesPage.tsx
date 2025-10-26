@@ -103,7 +103,7 @@ const PoliciesPage: React.FC = () => {
           </p>
           <div className="flex items-center justify-center space-x-4">
             <Link
-              to="/dashboard/ai-recommendations"
+              to="/dashboard/ml-recommendations"
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
             >
               <Shield className="w-5 h-5" />
@@ -135,7 +135,7 @@ const PoliciesPage: React.FC = () => {
             <span>Export</span>
           </button>
           <Link
-            to="/dashboard/ai-recommendations"
+            to="/dashboard/ml-recommendations"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
           >
             <Plus className="w-4 h-4" />
