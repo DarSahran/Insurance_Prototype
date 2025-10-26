@@ -44,7 +44,7 @@ class PolicyBrowsingService {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (apiKey) {
       this.genAI = new GoogleGenerativeAI(apiKey);
-      this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+      this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     }
   }
 

@@ -186,7 +186,7 @@ insurance_questionnaires (
 ### API Integration
 
 **Gemini AI Models Used**:
-- `gemini-pro` - Text generation and analysis
+- `gemini-2.0-flash-exp` - Latest fast text generation and analysis model
 - Optimized prompts for insurance domain
 - Structured JSON output parsing
 - Error handling with mock data fallbacks
@@ -405,7 +405,7 @@ Your users can now get intelligent insurance recommendations based on their pers
 ---
 
 **Built with**:
-- Google Gemini AI (gemini-pro)
+- Google Gemini AI (gemini-2.0-flash-exp)
 - Supabase (Database & Auth)
 - React + TypeScript
 - Tailwind CSS
