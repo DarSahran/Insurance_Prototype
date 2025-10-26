@@ -45,6 +45,8 @@ const SettingsPage: React.FC = () => {
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [usageStatus, setUsageStatus] = useState<MLUsageStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -54,10 +56,82 @@ const SettingsPage: React.FC = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (user && activeTab === 'subscription') {
-      loadSubscriptionData();
+    if (user) {
+      if (activeTab === 'subscription') {
+        loadSubscriptionData();
+      } else if (activeTab === 'profile') {
+        loadUserProfile();
+      }
     }
   }, [user, activeTab]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      setProfileLoading(true);
+
+      // Fetch user profile data from user_profiles table
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+
+      setUserProfile(profile || {
+        user_id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || '',
+        phone: user.user_metadata?.phone || '',
+        date_of_birth: null,
+        address: null
+      });
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async (formData: any) => {
+    if (!user) return;
+
+    try {
+      setProfileLoading(true);
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          full_name: formData.fullName,
+          phone: formData.phone,
+          date_of_birth: formData.dateOfBirth,
+          address: formData.address,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error('Error saving profile:', error);
+        alert('Failed to save profile. Please try again.');
+        return;
+      }
+
+      alert('Profile saved successfully!');
+      await loadUserProfile();
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const loadSubscriptionData = async () => {
     if (!user) return;
@@ -107,87 +181,128 @@ const SettingsPage: React.FC = () => {
     }));
   };
 
-  const renderProfileTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
-        
-        <div className="flex items-center space-x-6 mb-6">
-          <div className="relative">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-              <User className="w-12 h-12 text-gray-400" />
+  const renderProfileTab = () => {
+    if (profileLoading && !userProfile) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      );
+    }
+
+    const fullName = userProfile?.full_name || user?.user_metadata?.full_name || '';
+    const [firstName, ...lastNameParts] = fullName.split(' ');
+    const lastName = lastNameParts.join(' ');
+
+    return (
+      <div className="space-y-6">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          const formData = new FormData(e.currentTarget);
+          const firstName = formData.get('firstName') as string;
+          const lastName = formData.get('lastName') as string;
+          handleSaveProfile({
+            fullName: `${firstName} ${lastName}`.trim(),
+            phone: formData.get('phone') as string,
+            dateOfBirth: formData.get('dateOfBirth') as string || null,
+            address: formData.get('address') as string
+          });
+        }}>
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+
+            <div className="flex items-center space-x-6 mb-6">
+              <div className="relative">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-3xl font-semibold">
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <button type="button" className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700">
+                  <Camera className="w-4 h-4" />
+                </button>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Profile Photo</h3>
+                <p className="text-sm text-gray-600">Upload a new profile picture</p>
+                <button type="button" className="mt-2 text-blue-600 hover:text-blue-800 font-medium">
+                  Change Photo
+                </button>
+              </div>
             </div>
-            <button className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700">
-              <Camera className="w-4 h-4" />
-            </button>
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-gray-900">Profile Photo</h3>
-            <p className="text-sm text-gray-600">Upload a new profile picture</p>
-            <button className="mt-2 text-blue-600 hover:text-blue-800 font-medium">
-              Change Photo
-            </button>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-            <input 
-              type="text" 
-              defaultValue="John"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-            <input 
-              type="text" 
-              defaultValue="Doe"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-            <input 
-              type="email" 
-              defaultValue="john.doe@example.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <input 
-              type="tel" 
-              defaultValue="+1 (555) 123-4567"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-            <input 
-              type="date" 
-              defaultValue="1990-01-01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-            <input 
-              type="text" 
-              defaultValue="123 Main St, City, State 12345"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  defaultValue={firstName}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  defaultValue={lastName}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  defaultValue={userProfile?.phone || ''}
+                  placeholder="+1 (555) 123-4567"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  defaultValue={userProfile?.date_of_birth || ''}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  defaultValue={userProfile?.address || ''}
+                  placeholder="123 Main St, City, State 12345"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
 
-        <div className="flex justify-end mt-6">
-          <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <Save className="w-4 h-4" />
-            <span>Save Changes</span>
-          </button>
-        </div>
-      </div>
+            <div className="flex justify-end mt-6">
+              <button
+                type="submit"
+                disabled={profileLoading}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                <span>{profileLoading ? 'Saving...' : 'Save Changes'}</span>
+              </button>
+            </div>
+          </div>
+        </form>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Security Settings</h2>
@@ -235,6 +350,7 @@ const SettingsPage: React.FC = () => {
       </div>
     </div>
   );
+  };
 
   const renderNotificationsTab = () => (
     <div className="space-y-6">
@@ -480,9 +596,10 @@ const SettingsPage: React.FC = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            priceId: tier.stripe_price_id_monthly,
-            userId: user.id,
-            tierName: tier.name
+            price_id: tier.stripe_price_id_monthly,
+            mode: 'subscription',
+            success_url: `${window.location.origin}/dashboard/settings?tab=subscription&success=true`,
+            cancel_url: `${window.location.origin}/dashboard/settings?tab=subscription&cancelled=true`
           }),
         }
       );
