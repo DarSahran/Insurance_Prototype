@@ -318,13 +318,7 @@ const DashboardHome: React.FC = () => {
                   <Shield className="w-5 h-5" />
                   <span>Browse Policies</span>
                 </Link>
-                <Link
-                  to="/dashboard/assessment/new"
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center space-x-2"
-                >
-                  <FileText className="w-5 h-5" />
-                  <span>Complete Assessment</span>
-                </Link>
+             
               </div>
             </div>
           )}
