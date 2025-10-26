@@ -38,6 +38,7 @@ import CareersPage from './pages/CareersPage';
 import ContactPage from './pages/ContactPage';
 import PressPage from './pages/PressPage';
 import InsuranceAssessmentWizard from './components/InsuranceAssessmentWizard';
+import MLAssessmentQuestionnaire from './components/MLAssessmentQuestionnaire';
 
 // Authentication wrapper component
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -257,8 +258,9 @@ function App() {
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:id" element={<AssessmentDetailsPage />} />
             <Route path="assessment/new" element={<NewAssessmentPage />} />
-            <Route path="ai-recommendations" element={<MLEnhancedRecommendationsPage />} />
-            <Route path="ai-recommendations-legacy" element={<AIInsuranceRecommendationsPage />} />
+            <Route path="assessment/ml" element={<MLAssessmentQuestionnaire />} />
+            <Route path="ml-recommendations" element={<MLEnhancedRecommendationsPage />} />
+            <Route path="ai-recommendations" element={<AIInsuranceRecommendationsPage />} />
             <Route path="risk" element={<RiskDashboardPage />} />
             <Route path="health" element={<HealthTrackingPage />} />
             <Route path="financial" element={<FinancialPlanningPage />} />
